@@ -3,3 +3,4 @@ Run/*.root
 Run/*.in
 Run/*.out
 */.ipynb_checkpoints
+*.png
