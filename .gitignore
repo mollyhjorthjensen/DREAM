@@ -1,6 +1,7 @@
 Dream/build
-Run/*.root
-Run/*.in
-Run/*.out
+*.root
+*.in
+*.out
+Run/*/*.sh
 */.ipynb_checkpoints
 *.png
