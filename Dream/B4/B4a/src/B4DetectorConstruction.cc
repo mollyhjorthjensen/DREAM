@@ -210,7 +210,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4int NofCherFibers = NofFibers/2;
   G4int NofFibersrow = NofFibers/4;
   G4int NofFiberscolumn = NofFibersrow;
-  G4double moduleZ = (1500.+1123.)*mm;
+  G4double moduleZ = 112.*cm;
   G4double moduleX = 12.*mm; 
   G4double moduleY = moduleX;
 
@@ -234,11 +234,11 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4double fiberZ = moduleZ;
 
   // Geometry parameters of the core
-  G4double coreradius = 0.485*mm;
+  G4double coreradius = 0.48*mm;
   G4double coreZ = moduleZ;
 
   // Geometry parameters of the cladding
-  G4double claddingradiusmin = 0.485*mm;
+  G4double claddingradiusmin = 0.48*mm;
   G4double claddingradiusmax = 0.50*mm;
   G4double claddingZ = moduleZ;
 
@@ -260,7 +260,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
   // Get materials for vacuum, absorber, scintillating and cherenkov fibers, SiPM
   G4Material* defaultMaterial = G4Material::GetMaterial("G4_AIR"); // G4_AIR or G4_Galactic 
-  G4Material* absorberMaterial = G4Material::GetMaterial("G4_Pb"); // or Brass or G4_Cu or G4_Pb
+  G4Material* absorberMaterial = G4Material::GetMaterial("Brass"); // or Brass or G4_Cu or G4_Pb
   G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
   G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
   G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
@@ -812,14 +812,14 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   OpSurfaceGlassSi -> SetFinish(polished);
 
   G4double efficiencyOpSurfaceGlassSi[ENTRIES] =     // detection efficiency 
-                                    { 0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4};
+                                    { 0.25, 0.25, 0.25, 0.25,
+                                      0.25, 0.25, 0.25, 0.25,
+                                      0.25, 0.25, 0.25, 0.25,
+                                      0.25, 0.25, 0.25, 0.25,
+                                      0.25, 0.25, 0.25, 0.25,
+                                      0.25, 0.25, 0.25, 0.25,
+                                      0.25, 0.25, 0.25, 0.25,
+                                      0.25, 0.25, 0.25, 0.25};
                                       
 
    G4double reflectivityOpSurfaceGlassSi[ENTRIES] =  // 0% reflection
