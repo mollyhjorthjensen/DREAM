@@ -40,6 +40,8 @@
 #include <iomanip>
 #include <vector>
 
+#include "SiPMsd.hh"
+#include "G4SDManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -54,7 +56,9 @@ B4aEventAction::B4aEventAction()
    PrimaryParticleEnergy(0.),
    EscapedEnergy(0.),
    VectorSignals(0.),
-   VectorSignalsCher(0.)
+   VectorSignalsCher(0.),
+   fSSiPMhcID(-1), 
+   fCSiPMhcID(-1)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -92,9 +96,30 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
     if(VectorSignalsCher.size() < 322624){
   VectorSignalsCher.push_back(0.);}}
   //VectorSignalsCher[k]=0;}  
+
+  S_vec_key.clear();
+  S_vec_val.clear();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+SiPMhitsCollection* 
+B4aEventAction::GetHitsCollection(G4int hcID,
+                                  const G4Event* event) const
+{
+  auto hitsCollection 
+    = static_cast<SiPMhitsCollection*>(
+        event->GetHCofThisEvent()->GetHC(hcID));
+  
+  if ( ! hitsCollection ) {
+    G4ExceptionDescription msg;
+    msg << "Cannot access hitsCollection ID " << hcID; 
+    G4Exception("B4aEventAction::GetHitsCollection()",
+      "MyCode0003", FatalException, msg);
+  }         
+
+  return hitsCollection;
+}  
 
 void B4aEventAction::EndOfEventAction(const G4Event* event)
 {
@@ -121,7 +146,6 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   analysisManager->FillNtupleSColumn(6, PrimaryParticleName);
   analysisManager->FillNtupleSColumn(7, AbsorberMaterial);
   analysisManager->FillNtupleDColumn(8, EscapedEnergy);
-  analysisManager->AddNtupleRow();//columns with vector are automatically filled with this function
 
   //print here if you need event by event some information of the screen
   //G4cout<<EnergyTot<<G4endl;  
@@ -130,6 +154,36 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   G4cout<< a<<" "<< Signalfibre[a] <<" "<< EnergyTot <<G4endl;
   }*/
   //G4cout<< EnergyTot <<" "<< energyionization <<" "<< energyphoton << G4endl;
+
+  // Get hits collections IDs (only once)
+  auto sdMan = G4SDManager::GetSDMpointer();
+  auto S_sd = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("S_SiPMsd"));
+  for (G4int i = 0; i < S_sd->GetNumberOfCollections(); ++i)
+  {
+    G4int HCID = sdMan->GetCollectionID(S_sd->GetCollectionName(i));
+    // Get hits collections
+    auto S_HC = GetHitsCollection(HCID, event);
+    // auto C_HC = GetHitsCollection(fCSiPMhcID, event);
+    S_HC->PrintAllHits();
+  }
+  auto C_sd = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("C_SiPMsd"));
+  for (G4int i = 0; i < C_sd->GetNumberOfCollections(); ++i)
+  {
+    G4int HCID = sdMan->GetCollectionID(C_sd->GetCollectionName(i));
+    // Get hits collections
+    auto C_HC = GetHitsCollection(HCID, event);
+    // auto C_HC = GetHitsCollection(fCSiPMhcID, event);
+    C_HC->PrintAllHits();
+  }
+
+  // for (auto const& [key, val] : *(S_HC->GetMap()) )
+  // {
+  //   S_vec_key.push_back(key);
+  //   S_vec_val.push_back(*val);
+  //   G4cout << "here : " << key << "\t" << *val << G4endl;
+  // }
+
+  analysisManager->AddNtupleRow(); //columns with vector are automatically filled with this function
 
 }
 

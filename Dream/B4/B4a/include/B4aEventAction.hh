@@ -35,6 +35,7 @@
 #include "globals.hh"
 #include <vector>
 
+#include "SiPMsd.hh"
 
 /// Event action class 
 
@@ -64,6 +65,9 @@ class B4aEventAction : public G4UserEventAction
     std::vector<G4double>& GetVectorSignals() {return VectorSignals;} 
     std::vector<G4double>& GetVectorSignalsCher() {return VectorSignalsCher;}
 
+    std::vector<G4int>& GetSvecKey() {return S_vec_key;} 
+    std::vector<G4int>& GetSvecVal() {return S_vec_val;}
+
     //to fill vectors
     void AddVectorScinEnergy(G4double de, G4int module, G4int fiber); //fill vector of scintillating fibers with energy deposition
     void AddVectorCherPE(G4int module, G4int fiber);//fill vector of cherenkov fibers with chernekov photoelectrons
@@ -83,6 +87,14 @@ class B4aEventAction : public G4UserEventAction
 
     std::vector<G4double> VectorSignals;//Vector filled with scintillating fibers energy deposits
     std::vector<G4double> VectorSignalsCher;//Vector filled with Cherenkov fibers Cherenkov photoelectrons
+
+    SiPMhitsCollection* GetHitsCollection(G4int hcID, const G4Event* event) const;
+
+    G4int fSSiPMhcID;
+    G4int fCSiPMhcID;
+
+    std::vector<G4int> S_vec_key;
+    std::vector<G4int> S_vec_val;
 };
 
 // inline functions

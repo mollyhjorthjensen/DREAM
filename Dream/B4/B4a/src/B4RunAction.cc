@@ -154,8 +154,10 @@ void B4RunAction::BeginOfRunAction(const G4Run* run /*run*/)
   analysisManager->CreateNtupleSColumn("PrimaryParticleName");
   analysisManager->CreateNtupleSColumn("AbsorberMaterial");
   analysisManager->CreateNtupleDColumn("EscapedEnergy");
-  analysisManager->CreateNtupleDColumn("VectorSignals",eventAction->GetVectorSignals());
-  analysisManager->CreateNtupleDColumn("VectorSignalsCher",eventAction->GetVectorSignalsCher());
+  // analysisManager->CreateNtupleDColumn("VectorSignals",eventAction->GetVectorSignals());
+  // analysisManager->CreateNtupleDColumn("VectorSignalsCher",eventAction->GetVectorSignalsCher());
+  // analysisManager->CreateNtupleIColumn("S_vec_key",eventAction->GetSvecKey());
+  // analysisManager->CreateNtupleIColumn("S_vec_val",eventAction->GetSvecVal());
   analysisManager->FinishNtuple();
   //analysisManager->CreateNtupleDColumn("Scinintheglass");//if you want scintillating photons
 }
