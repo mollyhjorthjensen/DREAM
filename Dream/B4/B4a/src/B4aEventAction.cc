@@ -56,9 +56,7 @@ B4aEventAction::B4aEventAction()
    PrimaryParticleEnergy(0.),
    EscapedEnergy(0.),
    VectorSignals(0.),
-   VectorSignalsCher(0.),
-   fSSiPMhcID(-1), 
-   fCSiPMhcID(-1)
+   VectorSignalsCher(0.)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -82,10 +80,10 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
     Signalfibre[i]=0;
   }*///only if you want to use SignalFibre[64]
   for (int i=0;i<VectorSignals.size();i++){
-  VectorSignals.at(i)=0.;
-}
+    VectorSignals.at(i)=0.;
+  }
   for (int i=0;i<VectorSignalsCher.size();i++){
-  VectorSignalsCher.at(i)=0.;
+    VectorSignalsCher.at(i)=0.;
   }
   PrimaryParticleEnergy = 0;  
   for(int i=0;i<322624;i++){
@@ -97,8 +95,10 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
   VectorSignalsCher.push_back(0.);}}
   //VectorSignalsCher[k]=0;}  
 
-  S_vec_key.clear();
-  S_vec_val.clear();
+  VectorIndex.at(kScnt).clear();
+  VectorIndex.at(kCkov).clear();
+  VectorSignal.at(kScnt).clear();
+  VectorSignal.at(kCkov).clear();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -155,36 +155,31 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   }*/
   //G4cout<< EnergyTot <<" "<< energyionization <<" "<< energyphoton << G4endl;
 
-  // Get hits collections IDs (only once)
   auto sdMan = G4SDManager::GetSDMpointer();
-  auto S_sd = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("S_SiPMsd"));
-  for (G4int i = 0; i < S_sd->GetNumberOfCollections(); ++i)
-  {
-    G4int HCID = sdMan->GetCollectionID(S_sd->GetCollectionName(i));
-    // Get hits collections
-    auto S_HC = GetHitsCollection(HCID, event);
-    // auto C_HC = GetHitsCollection(fCSiPMhcID, event);
-    S_HC->PrintAllHits();
+  std::array<const SiPMsd *, kNProc> sdArray;
+  sdArray.at(kCkov) = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("C_SiPMsd"));
+  sdArray.at(kScnt) = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("S_SiPMsd"));
+  
+  std::array<SiPMhitsCollection, kNProc> hcArray;
+  for (int i = 0; i < kNProc; ++i) {
+    // sum shower signals
+    for (G4int j = 0; j < sdArray.at(i)->GetNumberOfCollections(); ++j)
+    {
+      // get hits collections ID
+      G4int HCID = sdMan->GetCollectionID(sdArray.at(i)->GetCollectionName(j));
+      // get hits collections
+      auto HC = GetHitsCollection(HCID, event);
+      hcArray.at(i) += *HC;
+    }
+    // fill vectors with total signal
+    for (auto const& [key, val] : *(hcArray.at(i).GetMap()) )
+    {
+      VectorIndex.at(i).push_back(key);
+      VectorSignal.at(i).push_back(*val);
+    }
   }
-  auto C_sd = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("C_SiPMsd"));
-  for (G4int i = 0; i < C_sd->GetNumberOfCollections(); ++i)
-  {
-    G4int HCID = sdMan->GetCollectionID(C_sd->GetCollectionName(i));
-    // Get hits collections
-    auto C_HC = GetHitsCollection(HCID, event);
-    // auto C_HC = GetHitsCollection(fCSiPMhcID, event);
-    C_HC->PrintAllHits();
-  }
-
-  // for (auto const& [key, val] : *(S_HC->GetMap()) )
-  // {
-  //   S_vec_key.push_back(key);
-  //   S_vec_val.push_back(*val);
-  //   G4cout << "here : " << key << "\t" << *val << G4endl;
-  // }
 
   analysisManager->AddNtupleRow(); //columns with vector are automatically filled with this function
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

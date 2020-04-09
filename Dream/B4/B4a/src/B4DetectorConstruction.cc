@@ -1094,7 +1094,7 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
                                                         SiPM_name,                    //its name
                                                         moduleequippedLV,                      //its mother
                                                         false,                        //no boulean operat
-                                                        0); 
+                                                        copynumber); 
 
           logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] = new G4LogicalBorderSurface("logic_OpSurface_defaultAir", CalorimeterPV, 
             physi_SiPM[row][column], OpSurfacedefault);
@@ -1131,7 +1131,7 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
                                                      SiPM_name,                    //its name
                                                      moduleequippedLV,             //its mother
                                                      false,                        //no boulean operat
-                                                     0); 
+                                                     copynumber); 
          logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] = new G4LogicalBorderSurface("logic_OpSurface_defaultAir", CalorimeterPV, 
            physi_SiPM[row][column], OpSurfacedefault);
          }
@@ -1191,7 +1191,7 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
                                                         SiPM_name,           //its name
                                                         moduleequippedLV,    //its mother
                                                         false,               //no boulean operat
-                                                        0); 
+                                                        copynumber); 
             logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] = new G4LogicalBorderSurface("logic_OpSurface_defaultAir", CalorimeterPV, 
              physi_SiPM[row][column], OpSurfacedefault);
           }
@@ -1227,7 +1227,7 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
                                                       SiPM_name,                    //its name
                                                       moduleequippedLV,                      //its mother
                                                       false,                        //no boulean operat
-                                                      0); 
+                                                      copynumber); 
           logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] = new G4LogicalBorderSurface("logic_OpSurface_defaultAir", CalorimeterPV, 
            physi_SiPM[row][column], OpSurfacedefault);
          }
@@ -1252,12 +1252,12 @@ void B4DetectorConstruction::ConstructSDandField()
   SiPMfilter->add("opticalphoton");
   SiPMfilter->SetKineticEnergy(elow, ehigh);
 
-  auto S_SiPMsd = new SiPMsd("S_SiPMsd", "S_HitsCollection");
+  auto S_SiPMsd = new SiPMsd("S_SiPMsd", "S_HitsCollection", 71, 8);
   S_SiPMsd->SetFilter(SiPMfilter);
   G4SDManager::GetSDMpointer()->AddNewDetector(S_SiPMsd);
   SetSensitiveDetector("S_Si", S_SiPMsd, true);
 
-  auto C_SiPMsd = new SiPMsd("C_SiPMsd", "C_HitsCollection");
+  auto C_SiPMsd = new SiPMsd("C_SiPMsd", "C_HitsCollection", 71, 8);
   C_SiPMsd->SetFilter(SiPMfilter);
   G4SDManager::GetSDMpointer()->AddNewDetector(C_SiPMsd);
   SetSensitiveDetector("C_Si", C_SiPMsd, true);

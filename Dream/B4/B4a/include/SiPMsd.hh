@@ -24,7 +24,7 @@ public:
    * @param SDname the sensitive detector name.
    * @param HCname the hit collection name.
    */
-  SiPMsd(G4String SDname, G4String HCname);
+  SiPMsd(G4String SDname, G4String HCname, const G4int NofModules, const G4int NofFibers);
   virtual ~SiPMsd();
 
   virtual void Initialize(G4HCofThisEvent *aHCE);
@@ -33,6 +33,9 @@ public:
 
 private:
   std::array<SiPMhitsCollection*, MAX> fHitCollection;
+  const G4int fNofModules;
+  const G4int fNofFibers;
+  G4int GetRowMajorIndex(const G4int module, const G4int fibre);
 };
 
 #endif
