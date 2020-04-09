@@ -151,7 +151,7 @@ void B4RunAction::BeginOfRunAction(const G4Run* run /*run*/)
   analysisManager->CreateNtupleDColumn("NofCherenkovDetected"); 
   analysisManager->CreateNtupleDColumn("EnergyTot");
   analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");
-  analysisManager->CreateNtupleSColumn("PrimaryParticleName");
+  analysisManager->CreateNtupleIColumn("PrimaryParticlePDG");
   analysisManager->CreateNtupleSColumn("AbsorberMaterial");
   analysisManager->CreateNtupleDColumn("EscapedEnergy");
   analysisManager->CreateNtupleIColumn("VectorIndexCerenkov", eventAction->GetVectorIndexCerenkov());
