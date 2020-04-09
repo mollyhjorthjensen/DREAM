@@ -44,7 +44,7 @@ G4int SiPMsd::GetRowMajorIndex(const G4int module, const G4int fibre) {
   G4int NjModule = module % fNofModules;
   G4int NjFibre = fibre % fNofFibers;
   G4int Nj = fNofFibers * NjModule + NjFibre;
-  return fNofFibers * Ni + Nj;
+  return fNofFibers*fNofModules * Ni + Nj;
 }
 
 G4bool SiPMsd::ProcessHits(G4Step *aStep, G4TouchableHistory *)
