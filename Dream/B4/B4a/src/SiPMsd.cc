@@ -55,9 +55,6 @@ G4bool SiPMsd::ProcessHits(G4Step *aStep, G4TouchableHistory *)
   G4double edep = aTrack->GetTotalEnergy();
   if (edep == 0.) return false;
 
-  // kill track
-  aTrack->SetTrackStatus(fKillTrackAndSecondaries);
-
   // get shower number
   G4int showerNo = 0;
 
@@ -70,6 +67,12 @@ G4bool SiPMsd::ProcessHits(G4Step *aStep, G4TouchableHistory *)
   // particle is secondary
   if (aTrack->GetParentID() == 0) return false;
   G4String creatorProcess = aTrack->GetCreatorProcess()->GetProcessName();
+  // G4cout << "SiPMsd : " << SensitiveDetectorName << "\t" << creatorProcess << G4endl;
+  if (((SensitiveDetectorName == "C_SiPMsd") && (creatorProcess != "Cerenkov")) ||
+      ((SensitiveDetectorName == "S_SiPMsd") && (creatorProcess != "Scintillation"))) return false;
+
+  // kill track
+  aTrack->SetTrackStatus(fKillTrackAndSecondaries);
 
   // insert hit
   G4int count = 1;
