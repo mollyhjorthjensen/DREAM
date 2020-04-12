@@ -5,3 +5,4 @@ Dream/build
 Run/*/*.sh
 */.ipynb_checkpoints
 *.png
+.vscode
