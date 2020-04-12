@@ -48,6 +48,8 @@
 //#include "EMPhysics.hh"
 #include "OpticalPhysics.hh"
 
+#include "G4FastSimulationPhysics.hh"
+
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -112,8 +114,11 @@ PhysicsList::PhysicsList(G4String physName):  G4VModularPhysicsList()
     
     // Muon Physics
     //RegisterPhysics(new GCDMuonPhysics());
-    
-    
+
+  // --------------- fast simulation ----------------------------
+  auto fastSimulationPhysics = new G4FastSimulationPhysics();
+  fastSimulationPhysics->ActivateFastSimulation("opticalphoton"); 
+  RegisterPhysics(fastSimulationPhysics);
 }
 
 
@@ -133,4 +138,5 @@ void PhysicsList::SetCuts()
     SetCutValue(defaultCutValue, "gamma");
     SetCutValue(defaultCutValue, "e-");
     SetCutValue(defaultCutValue, "e+");
+    DumpCutValuesTable();
 }
