@@ -1,0 +1,67 @@
+# Macro file for monoenergetic particles
+#
+# print processes
+/process/list
+#
+# Use built-in Birks saturation 
+#/process/msc/UseG4EmSaturation true
+#
+# set random seed
+/random/setSeeds 8904140 1546570
+#
+# initialize
+/run/initialize
+#
+# forced decay
+/particle/select pi-
+/particle/property/stable true
+/particle/select pi0
+/particle/property/decay/select 0
+/particle/property/decay/br 1
+/particle/property/decay/select 1
+/particle/property/decay/br 0
+/particle/property/decay/dump
+#
+# generator
+#/DR/generator/select gps
+#
+# particle
+#/analysis/setFileName electron
+#
+# ELECTRON
+/gps/particle e-
+#
+# geometry
+/gps/position 0. 0. 0. mm
+/gps/pos/type Point
+/gps/ang/type iso
+/gps/ang/rot1 1 0 0
+/gps/ang/rot2 0 -1 0
+/gps/ang/mintheta 3. deg
+/gps/ang/maxtheta 6. deg 
+/gps/ang/minphi 0. deg
+/gps/ang/maxphi 360. deg
+#
+# energy
+/gps/energy 10. GeV
+#
+/run/beamOn 50
+
+# PION
+/gps/particle pi-
+#
+# geometry
+/gps/position 0. 0. 0. mm
+/gps/pos/type Point
+/gps/ang/type iso
+/gps/ang/rot1 1 0 0
+/gps/ang/rot2 0 -1 0
+/gps/ang/mintheta 3. deg
+/gps/ang/maxtheta 6. deg
+/gps/ang/minphi 0. deg
+/gps/ang/maxphi 360. deg
+#
+# energy
+/gps/energy 10. GeV
+#
+/run/beamOn 50
