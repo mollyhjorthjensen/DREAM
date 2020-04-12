@@ -60,6 +60,9 @@
 #include "G4SDParticleWithEnergyFilter.hh"
 #include "SiPMsd.hh"
 
+#include "G4RegionStore.hh"
+#include "FibreModel.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4ThreadLocal 
@@ -1235,8 +1238,13 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
      };
   };
 
-  // I return the physical World
+  // ------------------ region attributes -----------------------
+  G4RegionStore *regionStore = G4RegionStore::GetInstance();
+  G4Region *regFibre(regionStore->FindOrCreateRegion("Fibre"));
+  regFibre->AddRootLogicalVolume(logic_S_fiber);
+  regFibre->AddRootLogicalVolume(logic_C_fiber);
 
+  // I return the physical World
   return worldPV;
 }
 
@@ -1261,6 +1269,12 @@ void B4DetectorConstruction::ConstructSDandField()
   C_SiPMsd->SetFilter(SiPMfilter);
   G4SDManager::GetSDMpointer()->AddNewDetector(C_SiPMsd);
   SetSensitiveDetector("C_Si", C_SiPMsd, true);
+
+  // --------------- fast simulation ----------------------------
+  G4RegionStore *regionStore = G4RegionStore::GetInstance();
+  G4Region *regFibre = regionStore->GetRegion("Fibre");
+  auto fastSimModelFibre = new FibreModel("FibreModel", regFibre);
+  G4AutoDelete::Register(fastSimModelFibre);
 
   // --------------- magnetic field -----------------------------
   // Create global magnetic field messenger,

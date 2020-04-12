@@ -2,6 +2,7 @@ Dream/build
 *.root
 *.out
 Run/sensitive_validation
+Run/fastsim_validation
 */.ipynb_checkpoints
 *.png
 .vscode
