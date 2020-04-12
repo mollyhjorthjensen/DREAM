@@ -40,6 +40,8 @@
 #include <iomanip>
 #include <vector>
 
+#include "SiPMsd.hh"
+#include "G4SDManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -51,7 +53,7 @@ B4aEventAction::B4aEventAction()
    NofCherenkovDetected(0),
    //NofScintillationDetected(0),
    EnergyTot(0.),
-   PrimaryParticleEnergy(0.),
+  //  PrimaryParticleEnergy(0.),
    EscapedEnergy(0.),
    VectorSignals(0.),
    VectorSignalsCher(0.)
@@ -78,12 +80,12 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
     Signalfibre[i]=0;
   }*///only if you want to use SignalFibre[64]
   for (int i=0;i<VectorSignals.size();i++){
-  VectorSignals.at(i)=0.;
-}
-  for (int i=0;i<VectorSignalsCher.size();i++){
-  VectorSignalsCher.at(i)=0.;
+    VectorSignals.at(i)=0.;
   }
-  PrimaryParticleEnergy = 0;  
+  for (int i=0;i<VectorSignalsCher.size();i++){
+    VectorSignalsCher.at(i)=0.;
+  }
+  // PrimaryParticleEnergy = 0;  
   for(int i=0;i<322624;i++){
     if(VectorSignals.size() < 322624){
   VectorSignals.push_back(0.);}}
@@ -92,9 +94,32 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
     if(VectorSignalsCher.size() < 322624){
   VectorSignalsCher.push_back(0.);}}
   //VectorSignalsCher[k]=0;}  
+
+  VectorIndex.at(kScnt).clear();
+  VectorIndex.at(kCkov).clear();
+  VectorSignal.at(kScnt).clear();
+  VectorSignal.at(kCkov).clear();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+SiPMhitsCollection* 
+B4aEventAction::GetHitsCollection(G4int hcID,
+                                  const G4Event* event) const
+{
+  auto hitsCollection 
+    = static_cast<SiPMhitsCollection*>(
+        event->GetHCofThisEvent()->GetHC(hcID));
+  
+  if ( ! hitsCollection ) {
+    G4ExceptionDescription msg;
+    msg << "Cannot access hitsCollection ID " << hcID; 
+    G4Exception("B4aEventAction::GetHitsCollection()",
+      "MyCode0003", FatalException, msg);
+  }         
+
+  return hitsCollection;
+}  
 
 void B4aEventAction::EndOfEventAction(const G4Event* event)
 {
@@ -109,7 +134,7 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   //analysisManager->FillH1(2, TrackLmodule);
   //analysisManager->FillH1(3, EnergyScin);
   
-  
+  G4PrimaryParticle *primary = event->GetPrimaryVertex()->GetPrimary();
 
   // fill ntuple event by event
   analysisManager->FillNtupleDColumn(0, Energyem);
@@ -117,11 +142,10 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   analysisManager->FillNtupleDColumn(2, EnergyCher);
   analysisManager->FillNtupleDColumn(3, NofCherenkovDetected);
   analysisManager->FillNtupleDColumn(4, EnergyTot);
-  analysisManager->FillNtupleDColumn(5, PrimaryParticleEnergy);
-  analysisManager->FillNtupleSColumn(6, PrimaryParticleName);
+  analysisManager->FillNtupleDColumn(5, primary->GetTotalEnergy());
+  analysisManager->FillNtupleIColumn(6, primary->GetPDGcode());
   analysisManager->FillNtupleSColumn(7, AbsorberMaterial);
   analysisManager->FillNtupleDColumn(8, EscapedEnergy);
-  analysisManager->AddNtupleRow();//columns with vector are automatically filled with this function
 
   //print here if you need event by event some information of the screen
   //G4cout<<EnergyTot<<G4endl;  
@@ -131,6 +155,31 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   }*/
   //G4cout<< EnergyTot <<" "<< energyionization <<" "<< energyphoton << G4endl;
 
+  auto sdMan = G4SDManager::GetSDMpointer();
+  std::array<const SiPMsd *, kNProc> sdArray;
+  sdArray.at(kCkov) = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("C_SiPMsd"));
+  sdArray.at(kScnt) = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("S_SiPMsd"));
+  
+  std::array<SiPMhitsCollection, kNProc> hcArray;
+  for (int i = 0; i < kNProc; ++i) {
+    // sum shower signals
+    for (G4int j = 0; j < sdArray.at(i)->GetNumberOfCollections(); ++j)
+    {
+      // get hits collections ID
+      G4int HCID = sdMan->GetCollectionID(sdArray.at(i)->GetCollectionName(j));
+      // get hits collections
+      auto HC = GetHitsCollection(HCID, event);
+      hcArray.at(i) += *HC;
+    }
+    // fill vectors with total signal
+    for (auto const& [key, val] : *(hcArray.at(i).GetMap()) )
+    {
+      VectorIndex.at(i).push_back(key);
+      VectorSignal.at(i).push_back(*val);
+    }
+  }
+
+  analysisManager->AddNtupleRow(); //columns with vector are automatically filled with this function
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

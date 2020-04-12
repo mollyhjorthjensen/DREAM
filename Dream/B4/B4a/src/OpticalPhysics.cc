@@ -144,9 +144,9 @@ void OpticalPhysics::ConstructProcess()
         // photons comment if body
         if(theScintProcess->IsApplicable(*particle))
         {
-            //pManager->AddProcess(theScintProcess);
-            //pManager->SetProcessOrderingToLast(theScintProcess,idxAtRest);
-            //pManager->SetProcessOrderingToLast(theScintProcess,idxPostStep);
+            pManager->AddProcess(theScintProcess);
+            pManager->SetProcessOrderingToLast(theScintProcess,idxAtRest);
+            pManager->SetProcessOrderingToLast(theScintProcess,idxPostStep);
         }
         
     }

@@ -35,6 +35,7 @@
 #include "globals.hh"
 #include <vector>
 
+#include "SiPMsd.hh"
 
 /// Event action class 
 
@@ -61,8 +62,10 @@ class B4aEventAction : public G4UserEventAction
     void AddEscapedEnergy(G4double escapedenergy);
 
     //to save vectors in ntuple
-    std::vector<G4double>& GetVectorSignals() {return VectorSignals;} 
-    std::vector<G4double>& GetVectorSignalsCher() {return VectorSignalsCher;}
+    std::vector<G4int>& GetVectorIndexScintillation() {return VectorIndex.at(kScnt);}
+    std::vector<G4int>& GetVectorIndexCerenkov() {return VectorIndex.at(kCkov);} 
+    std::vector<G4int>& GetVectorSignalScintillation() {return VectorSignal.at(kScnt);}
+    std::vector<G4int>& GetVectorSignalCerenkov() {return VectorSignal.at(kCkov);}
 
     //to fill vectors
     void AddVectorScinEnergy(G4double de, G4int module, G4int fiber); //fill vector of scintillating fibers with energy deposition
@@ -83,6 +86,17 @@ class B4aEventAction : public G4UserEventAction
 
     std::vector<G4double> VectorSignals;//Vector filled with scintillating fibers energy deposits
     std::vector<G4double> VectorSignalsCher;//Vector filled with Cherenkov fibers Cherenkov photoelectrons
+
+    SiPMhitsCollection* GetHitsCollection(G4int hcID, const G4Event* event) const;
+
+    enum ProcessIndex {
+      kCkov,  ///< Cerenkov process index
+      kScnt,  ///< Scintillation process index
+      kNProc ///< Number of processes
+    };  
+
+    std::array<std::vector<G4int>, kNProc> VectorIndex;   ///< Scintillating fibre p.e.
+    std::array<std::vector<G4int>, kNProc> VectorSignal;  ///< Cherenkov fibre p.e.
 };
 
 // inline functions

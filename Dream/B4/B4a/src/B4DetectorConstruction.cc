@@ -56,6 +56,10 @@
 #include "G4LogicalSkinSurface.hh"
 #include "G4LogicalBorderSurface.hh"
 
+#include "G4SDManager.hh"
+#include "G4SDParticleWithEnergyFilter.hh"
+#include "SiPMsd.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4ThreadLocal 
@@ -229,6 +233,9 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4double worldY = 200 * moduleY;
   G4double worldZ = 60 * moduleZ;
 
+  // Distance from origo to calorimeter surface
+  G4double CalRin = 2.5 * m;
+
   // Geometry parameters of the fiber
   G4double fiberradius = 0.5*mm;
   G4double fiberZ = moduleZ;
@@ -259,7 +266,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4double moduleequippedY = moduleY;
 
   // Get materials for vacuum, absorber, scintillating and cherenkov fibers, SiPM
-  G4Material* defaultMaterial = G4Material::GetMaterial("G4_AIR"); // G4_AIR or G4_Galactic 
+  G4Material* defaultMaterial = G4Material::GetMaterial("G4_Galactic"); // G4_AIR or G4_Galactic 
   G4Material* absorberMaterial = G4Material::GetMaterial("Brass"); // or Brass or G4_Cu or G4_Pb
   G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
   G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
@@ -591,7 +598,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   /* G4VSolid* CalorimeterS 
     = new G4Box("CalorimeterS",                              // its name
                  (12.*mm/2)*Nofmodules/2, (12.*mm/2)*Nofmodules/2, moduleequippedZ/2); // its size*/
-    G4VSolid* CalorimeterS 
+  auto CalorimeterS 
     = new G4Box("CalorimeterS",                              // its name
                  moduleequippedX*Nofmodules/2, moduleequippedY*Nofmodules/2, moduleequippedZ/2); // its size                     
   G4LogicalVolume* CalorimeterLV
@@ -762,7 +769,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4ThreeVector position;
   position.setX(0.);
   position.setY(0.);
-  position.setZ(0.);
+  position.setZ(CalRin + CalorimeterS->GetZHalfLength());
   G4Transform3D transform = G4Transform3D(rotm,position); 
 
   G4VPhysicalVolume* CalorimeterPV = new G4PVPlacement(
@@ -839,54 +846,38 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
   // Here I build the SiPM
 
-  G4VSolid* SiPMS
-    = new G4Box("SiPM",                      // its name
-                 SiPMX/2, SiPMY/2, SiPMZ/2); // its size
+  G4VSolid* S_SiPMS = new G4Box("S_SiPM", SiPMX/2, SiPMY/2, SiPMZ/2);
+  G4VSolid* C_SiPMS = new G4Box("C_SiPM", SiPMX/2, SiPMY/2, SiPMZ/2);
                          
-  G4LogicalVolume* SiPMLV
-    = new G4LogicalVolume(
-                 SiPMS,             // its solid
-                 GlassMaterial,     // its material
-                 "SiPM");           // its name
+  G4LogicalVolume* S_SiPMLV = new G4LogicalVolume(S_SiPMS, GlassMaterial, "S_SiPM");
+  G4LogicalVolume* C_SiPMLV = new G4LogicalVolume(C_SiPMS, GlassMaterial, "C_SiPM");
 
- // Here I build the Si of the SiPM
- 
- G4VSolid* SiS
-   = new G4Box("Si",                     // its name
-                SiX/2, SiY/2, SiZ/2);       // its size
-                         
- G4LogicalVolume* SiLV
-   = new G4LogicalVolume(
-                 SiS,            // its solid
-                 SiMaterial,     // its material
-                 "Si");          // its name
+  // Here I build the Si of the SiPM
 
- // I put the Si inside the SiPM, I will put the SiPMs next to fibers later
+  G4VSolid* S_SiS = new G4Box("S_Si", SiX/2, SiY/2, SiZ/2);
+  G4VSolid* C_SiS = new G4Box("C_Si", SiX/2, SiY/2, SiZ/2);
+  
+  G4LogicalVolume* S_SiLV = new G4LogicalVolume(S_SiS, SiMaterial, "S_Si");
+  G4LogicalVolume* C_SiLV = new G4LogicalVolume(C_SiS, SiMaterial, "C_Si");
 
- G4ThreeVector vec_Si;
- vec_Si.setX(0.);
- vec_Si.setY(0.);
- vec_Si.setZ(SiPMZ/2-SiZ/2); // Si at the end of SiPM
-                             
- G4VPhysicalVolume* SiPV = new G4PVPlacement(
-                                             0,                 // no rotation
-                                             vec_Si,  
-                                             SiLV,              // its logical volume                         
-                                             "Si",              // its name
-                                             SiPMLV,            // its mother  volume
-                                             false,             // no boolean operation
-                                             0,                 // copy number
-                                             fCheckOverlaps);   // checking overlaps 
+  // I put the Si inside the SiPM, I will put the SiPMs next to fibers later
+
+  G4ThreeVector vec_Si = G4ThreeVector(0., 0., SiPMZ/2-SiZ/2); // Si at the end of SiPM
+  
+  G4VPhysicalVolume* S_SiPV = new G4PVPlacement(0, vec_Si, S_SiLV, "S_Si", S_SiPMLV, false, 0, fCheckOverlaps);   // checking overlaps 
+  G4VPhysicalVolume* C_SiPV = new G4PVPlacement(0, vec_Si, C_SiLV, "C_Si", C_SiPMLV, false, 0, fCheckOverlaps);   // checking overlaps 
  
   // I set the visualization attributes of the Si of the SiPM
   G4VisAttributes* SiVisAtt = new G4VisAttributes(G4Colour(0.0,0.8,0.0)); //green
   SiVisAtt->SetVisibility(true);
   SiVisAtt->SetForceWireframe(true);
   SiVisAtt->SetForceSolid(true);
-  SiLV->SetVisAttributes(SiVisAtt); //end of visualization attributes
+  S_SiLV->SetVisAttributes(SiVisAtt);
+  C_SiLV->SetVisAttributes(SiVisAtt); //end of visualization attributes
 
   // Here I place the Logical Skin Surface around the silicon of the SiPM
-  G4LogicalSkinSurface* OpsurfaceSi = new G4LogicalSkinSurface("OpsurfaceSi", SiLV, OpSurfaceGlassSi);
+  G4LogicalSkinSurface* S_OpsurfaceSi = new G4LogicalSkinSurface("S_OpsurfaceSi", S_SiLV, OpSurfaceGlassSi);
+  G4LogicalSkinSurface* C_OpsurfaceSi = new G4LogicalSkinSurface("C_OpsurfaceSi", C_SiLV, OpSurfaceGlassSi);
 
   // Here I define the Optical Surface PROPRIETIES between the scintillating fibers and the default material
   // air or vacuum
@@ -1099,11 +1090,11 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
             // I need to place the SiPMs
             physi_SiPM[row][column] = new G4PVPlacement(0,
                                                         vec_SiPM,                      //its position
-                                                        SiPMLV,                        //its logical volume
+                                                        S_SiPMLV,                        //its logical volume
                                                         SiPM_name,                    //its name
                                                         moduleequippedLV,                      //its mother
                                                         false,                        //no boulean operat
-                                                        0); 
+                                                        copynumber); 
 
           logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] = new G4LogicalBorderSurface("logic_OpSurface_defaultAir", CalorimeterPV, 
             physi_SiPM[row][column], OpSurfacedefault);
@@ -1136,11 +1127,11 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
          // I need to place the SiPMs
          physi_SiPM[row][column] = new G4PVPlacement(0,
                                                      vec_SiPM,                     //its position
-                                                     SiPMLV,                       //its logical volume
+                                                     S_SiPMLV,                       //its logical volume
                                                      SiPM_name,                    //its name
                                                      moduleequippedLV,             //its mother
                                                      false,                        //no boulean operat
-                                                     0); 
+                                                     copynumber); 
          logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] = new G4LogicalBorderSurface("logic_OpSurface_defaultAir", CalorimeterPV, 
            physi_SiPM[row][column], OpSurfacedefault);
          }
@@ -1196,11 +1187,11 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
             // I need to place the SiPMs
             physi_SiPM[row][column] = new G4PVPlacement(0,
                                                         vec_SiPM,            //its position
-                                                        SiPMLV,              //its logical volume
+                                                        C_SiPMLV,              //its logical volume
                                                         SiPM_name,           //its name
                                                         moduleequippedLV,    //its mother
                                                         false,               //no boulean operat
-                                                        0); 
+                                                        copynumber); 
             logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] = new G4LogicalBorderSurface("logic_OpSurface_defaultAir", CalorimeterPV, 
              physi_SiPM[row][column], OpSurfacedefault);
           }
@@ -1232,11 +1223,11 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
           // I need to place the SiPMs
           physi_SiPM[row][column] = new G4PVPlacement(0,
                                                       vec_SiPM,                      //its position
-                                                      SiPMLV,                        //its logical volume
+                                                      C_SiPMLV,                        //its logical volume
                                                       SiPM_name,                    //its name
                                                       moduleequippedLV,                      //its mother
                                                       false,                        //no boulean operat
-                                                      0); 
+                                                      copynumber); 
           logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] = new G4LogicalBorderSurface("logic_OpSurface_defaultAir", CalorimeterPV, 
            physi_SiPM[row][column], OpSurfacedefault);
          }
@@ -1253,6 +1244,25 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
 
 void B4DetectorConstruction::ConstructSDandField()
 { 
+  // --------------- sensitive detectors ------------------------
+  static const double hc = h_Planck * c_light;
+  G4double elow = hc / (900. * nm);
+  G4double ehigh = hc / (300. * nm);
+  auto SiPMfilter = new G4SDParticleWithEnergyFilter("SiPMfilter");
+  SiPMfilter->add("opticalphoton");
+  SiPMfilter->SetKineticEnergy(elow, ehigh);
+
+  auto S_SiPMsd = new SiPMsd("S_SiPMsd", "S_HitsCollection", 71, 8);
+  S_SiPMsd->SetFilter(SiPMfilter);
+  G4SDManager::GetSDMpointer()->AddNewDetector(S_SiPMsd);
+  SetSensitiveDetector("S_Si", S_SiPMsd, true);
+
+  auto C_SiPMsd = new SiPMsd("C_SiPMsd", "C_HitsCollection", 71, 8);
+  C_SiPMsd->SetFilter(SiPMfilter);
+  G4SDManager::GetSDMpointer()->AddNewDetector(C_SiPMsd);
+  SetSensitiveDetector("C_Si", C_SiPMsd, true);
+
+  // --------------- magnetic field -----------------------------
   // Create global magnetic field messenger,
   // Uniform magnetic field is then created automatically if
   // the field value is not zero
