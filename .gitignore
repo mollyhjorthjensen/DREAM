@@ -1,8 +1,7 @@
 Dream/build
 *.root
-*.in
 *.out
-Run/*/*.sh
+Run/sensitive_validation
 */.ipynb_checkpoints
 *.png
 .vscode
