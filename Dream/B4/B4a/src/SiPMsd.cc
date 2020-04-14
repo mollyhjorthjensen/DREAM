@@ -4,6 +4,7 @@
  */
 
 #include "SiPMsd.hh"
+#include "TrackInfo.hh"
 
 #include "G4OpticalPhoton.hh"
 #include "G4SDManager.hh"
@@ -36,6 +37,17 @@ void SiPMsd::Initialize(G4HCofThisEvent *aHCE)
   }
 }
 
+G4int SiPMsd::GetShowerID(G4Track *aTrack) {
+  auto info = static_cast<TrackInfo *>(aTrack->GetUserInformation());
+  if (!info)
+  {
+    G4ExceptionDescription msg;
+    msg << "Missing user track information";
+    G4Exception("SiPMsd::GetShowerID()", "MyCode0004", FatalException, msg);
+  }
+  return info->GetShowerID();
+}
+
 G4int SiPMsd::GetRowMajorIndex(const G4int module, const G4int fibre) {
   G4int NiModule = module / fNofModules;
   G4int NiFibre = fibre / fNofFibers;
@@ -55,9 +67,6 @@ G4bool SiPMsd::ProcessHits(G4Step *aStep, G4TouchableHistory *)
   G4double edep = aTrack->GetTotalEnergy();
   if (edep == 0.) return false;
 
-  // get shower number
-  G4int showerNo = 0;
-
   // get copy number
   G4TouchableHandle touchable = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4int copyNoSiPM = touchable->GetCopyNumber(0);
@@ -67,16 +76,17 @@ G4bool SiPMsd::ProcessHits(G4Step *aStep, G4TouchableHistory *)
   // particle is secondary
   if (aTrack->GetParentID() == 0) return false;
   G4String creatorProcess = aTrack->GetCreatorProcess()->GetProcessName();
-  // G4cout << "SiPMsd : " << SensitiveDetectorName << "\t" << creatorProcess << G4endl;
   if (((SensitiveDetectorName == "C_SiPMsd") && (creatorProcess != "Cerenkov")) ||
       ((SensitiveDetectorName == "S_SiPMsd") && (creatorProcess != "Scintillation"))) return false;
+
+  // get user track information and insert hit
+  G4int count = 1;
+  G4int showerID = GetShowerID(aTrack);
+  fHitCollection.at(showerID)->add(copyNo, count);
 
   // kill track
   aTrack->SetTrackStatus(fKillTrackAndSecondaries);
 
-  // insert hit
-  G4int count = 1;
-  fHitCollection.at(showerNo)->add(copyNo, count);
   return true;
 }
 

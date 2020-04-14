@@ -35,6 +35,7 @@ private:
   std::array<SiPMhitsCollection*, MAX> fHitCollection;
   const G4int fNofModules;
   const G4int fNofFibers;
+  G4int GetShowerID(G4Track *aTrack);
   G4int GetRowMajorIndex(const G4int module, const G4int fibre);
 };
 
