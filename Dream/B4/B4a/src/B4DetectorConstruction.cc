@@ -57,6 +57,7 @@
 #include "G4LogicalBorderSurface.hh"
 
 #include "G4SDManager.hh"
+#include "TrackerSD.hh"
 #include "G4SDParticleWithEnergyFilter.hh"
 #include "SiPMsd.hh"
 
@@ -1253,6 +1254,12 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
 void B4DetectorConstruction::ConstructSDandField()
 { 
   // --------------- sensitive detectors ------------------------
+  auto sdMan = G4SDManager::GetSDMpointer();
+  auto trackerSD = new TrackerSD("TrackerSD");
+  sdMan->AddNewDetector(trackerSD);
+  SetSensitiveDetector("World", trackerSD);
+
+  // SiPM particle and energy filter
   static const double hc = h_Planck * c_light;
   G4double elow = hc / (900. * nm);
   G4double ehigh = hc / (300. * nm);
@@ -1262,12 +1269,12 @@ void B4DetectorConstruction::ConstructSDandField()
 
   auto S_SiPMsd = new SiPMsd("S_SiPMsd", "S_HitsCollection", 71, 8);
   S_SiPMsd->SetFilter(SiPMfilter);
-  G4SDManager::GetSDMpointer()->AddNewDetector(S_SiPMsd);
+  sdMan->AddNewDetector(S_SiPMsd);
   SetSensitiveDetector("S_Si", S_SiPMsd, true);
 
   auto C_SiPMsd = new SiPMsd("C_SiPMsd", "C_HitsCollection", 71, 8);
   C_SiPMsd->SetFilter(SiPMfilter);
-  G4SDManager::GetSDMpointer()->AddNewDetector(C_SiPMsd);
+  sdMan->AddNewDetector(C_SiPMsd);
   SetSensitiveDetector("C_Si", C_SiPMsd, true);
 
   // --------------- fast simulation ----------------------------
