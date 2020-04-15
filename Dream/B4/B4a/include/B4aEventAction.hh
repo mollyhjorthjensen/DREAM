@@ -36,6 +36,7 @@
 #include <vector>
 
 #include "SiPMsd.hh"
+#include "TrackerSD.hh"
 
 /// Event action class 
 
@@ -48,117 +49,46 @@ class B4aEventAction : public G4UserEventAction
     virtual void  BeginOfEventAction(const G4Event* event);
     virtual void    EndOfEventAction(const G4Event* event);
     
-    void Addem(G4double de);  //Add em component
-    void AddScin(G4double de);//Add energy in scintillating fibers
-    void AddCher(G4double de);//Add energy in Cherenkov fibers
-    void AddCherenkov();//Add cherenkov photoelectron
-    //void AddScintillation();
-    void Addenergy(G4double de);//Add all energy deposited
-    //void AddEnergyfibre(G4double de, G4int number);//Add energy in copy number fiber
-    //void AddSignalfibre(G4int number);
-    void SavePrimaryParticle(G4String name);
-    void SaveAbsorberMaterial(G4String AbsorberMaterialName);
-    void SavePrimaryEnergy(G4double primaryparticleenergy);
-    void AddEscapedEnergy(G4double escapedenergy);
+    std::vector<G4double>& GetVecPrimaryPolarization() { return fVecPrimaryPolarization; }
+    std::vector<G4int>& GetVecShowerPDG() { return fVecShowerPDG; }
+    std::vector<G4double>& GetVecShowerCharge() { return fVecShowerCharge; }
+    std::vector<G4double>& GetVecShowerPosition() { return fVecShowerPosition; }
+    std::vector<G4double>& GetVecShower4Momentum() { return fVecShower4Momentum; }
+    std::vector<G4double>& GetVecShowerCkovCoMi() { return fVecShowerCoMi.at(kCkov); }
+    std::vector<G4double>& GetVecShowerCkovCoMj() { return fVecShowerCoMj.at(kCkov); }
+    std::vector<G4double>& GetVecShowerScntCoMi() { return fVecShowerCoMi.at(kScnt); }
+    std::vector<G4double>& GetVecShowerScntCoMj() { return fVecShowerCoMj.at(kScnt); }
+    std::vector<G4int>& GetVecIndexCkov() { return fVecIndex.at(kCkov); } 
+    std::vector<G4int>& GetVecSignalCkov() { return fVecSignal.at(kCkov); }
+    std::vector<G4int>& GetVecIndexScnt() { return fVecIndex.at(kScnt); }
+    std::vector<G4int>& GetVecSignalScnt() { return fVecSignal.at(kScnt); }
 
-    //to save vectors in ntuple
-    std::vector<G4int>& GetVectorIndexScintillation() {return VectorIndex.at(kScnt);}
-    std::vector<G4int>& GetVectorIndexCerenkov() {return VectorIndex.at(kCkov);} 
-    std::vector<G4int>& GetVectorSignalScintillation() {return VectorSignal.at(kScnt);}
-    std::vector<G4int>& GetVectorSignalCerenkov() {return VectorSignal.at(kCkov);}
-
-    //to fill vectors
-    void AddVectorScinEnergy(G4double de, G4int module, G4int fiber); //fill vector of scintillating fibers with energy deposition
-    void AddVectorCherPE(G4int module, G4int fiber);//fill vector of cherenkov fibers with chernekov photoelectrons
-    
   private:
-    G4double  Energyem; //Energy of em component
-    G4double  EnergyScin; //Energy in scintillating fibers
-    G4double  EnergyCher; //Energy in Cherenkov fibers
-    G4int     NofCherenkovDetected; //Number of Cherenkov photons detected (in cherenkov fibers)
-    //G4int     NofScintillationDetected;//Number of Scintillating photons detected (in scintillating fibers)
-    G4double  EnergyTot;//Total energy deposited (does not count invisibile energy)
-    //G4double  Signalfibre[64];//Signal in 64 single module fibers, to be used with AddEnergyfibre
-    G4String PrimaryParticleName; //Name of primary particle
-    G4String AbsorberMaterial; //Name of absorber material
-    G4double PrimaryParticleEnergy;//Primary particle energy
-    G4double EscapedEnergy;
+    G4String fAbsMateName;  ///< Absorber material name
+    G4int fVoxelsAlongY;
 
-    std::vector<G4double> VectorSignals;//Vector filled with scintillating fibers energy deposits
-    std::vector<G4double> VectorSignalsCher;//Vector filled with Cherenkov fibers Cherenkov photoelectrons
-
-    SiPMhitsCollection* GetHitsCollection(G4int hcID, const G4Event* event) const;
+    TrackerHitsCollection* GetTrackerHitsCollection(G4int hcID, const G4Event* event) const;
+    SiPMhitsCollection* GetSiPMhitsCollection(G4int hcID, const G4Event* event) const;
+    std::tuple<std::vector<int>, std::vector<int>> GetVectors(SiPMhitsCollection *HC) const;
+    std::tuple<G4double, G4double> GetCentreOfMass(SiPMhitsCollection *HC) const;
 
     enum ProcessIndex {
       kCkov,  ///< Cerenkov process index
       kScnt,  ///< Scintillation process index
-      kNProc ///< Number of processes
-    };  
+      kNProc  ///< Number of processes
+    };
 
-    std::array<std::vector<G4int>, kNProc> VectorIndex;   ///< Scintillating fibre p.e.
-    std::array<std::vector<G4int>, kNProc> VectorSignal;  ///< Cherenkov fibre p.e.
+    std::vector<G4double> fVecPrimaryPolarization;
+    std::vector<G4int> fVecShowerPDG;
+    std::vector<G4double> fVecShowerCharge;
+    std::vector<G4double> fVecShowerPosition;
+    std::vector<G4double> fVecShower4Momentum;
+    std::array<std::vector<G4double>, kNProc> fVecShowerCoMi;
+    std::array<std::vector<G4double>, kNProc> fVecShowerCoMj;
+    std::array<std::vector<G4int>, kNProc> fVecIndex;   ///< Scintillating fibre p.e.
+    std::array<std::vector<G4int>, kNProc> fVecSignal;  ///< Cherenkov fibre p.e.
+
+    G4int fTrackerHCID;
 };
 
-// inline functions
-
-inline void B4aEventAction::AddEscapedEnergy(G4double escapedenergy){
-  EscapedEnergy += escapedenergy;
-}
-
-inline void B4aEventAction::SavePrimaryParticle(G4String name){
-  PrimaryParticleName = name;
-}
-
-inline void B4aEventAction::SaveAbsorberMaterial(G4String AbsorberMaterialName){
-  AbsorberMaterial = AbsorberMaterialName;
-}
-
-inline void B4aEventAction::SavePrimaryEnergy(G4double primaryparticleenergy){
-  PrimaryParticleEnergy = primaryparticleenergy;
-}
-
-inline void B4aEventAction::AddVectorScinEnergy(G4double de, G4int module, G4int fiber) {
-    VectorSignals.at(64*(module-1)+fiber) += de;
-}
-
-inline void B4aEventAction::AddVectorCherPE(G4int module, G4int fiber) {
-    VectorSignalsCher.at(64*(module-1)+fiber) = VectorSignalsCher.at(64*(module-1)+fiber) +1;
-}
-
-inline void B4aEventAction::Addem(G4double de) {
-  Energyem += de; 
-}
-
-inline void B4aEventAction::AddScin(G4double de){
-  EnergyScin += de;
-}
-
-inline void B4aEventAction::AddCher(G4double de){
-  EnergyCher += de;
-}
-
-inline void B4aEventAction::AddCherenkov(){
-  NofCherenkovDetected = NofCherenkovDetected + 1;
-}
-
-/*inline void B4aEventAction::AddScintillation(){
-  NofScintillationDetected = NofScintillationDetected +1;
-}*/
-
-inline void B4aEventAction::Addenergy(G4double de){
-  EnergyTot += de;
-}
-
-/*inline void B4aEventAction::AddEnergyfibre(G4double de, G4int number){
-    Signalfibre[number] += de;
-}*/
-
-/*inline void B4aEventAction::AddSignalfibre(G4int number){
-    Signalfibre[number] = Signalfibre[number] + 1;
-}*/
-                     
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #endif
-
-    
