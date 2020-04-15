@@ -50,6 +50,8 @@ class B4DetectorConstruction : public G4VUserDetectorConstruction
     // get methods
     //
     const G4VPhysicalVolume* GetmodulePV() const;
+    const G4String GetAbsMateName() const { return fAbsMateName; }
+    const G4int GetVoxelsAlongY() const { return fVoxelsAlongY; }
      
   private:
     // methods
@@ -63,6 +65,8 @@ class B4DetectorConstruction : public G4VUserDetectorConstruction
                                       // magnetic field messenger
      
     G4VPhysicalVolume*   modulePV; // the module physical volume
+    G4String fAbsMateName;
+    G4int fVoxelsAlongY;
     
     G4bool  fCheckOverlaps; // option to activate checking of volumes overlaps
 };
@@ -70,9 +74,8 @@ class B4DetectorConstruction : public G4VUserDetectorConstruction
 // inline functions
 
 inline const G4VPhysicalVolume* B4DetectorConstruction::GetmodulePV() const { 
-  return modulePV; 
+  return modulePV;
 }
-     
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

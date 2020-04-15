@@ -74,6 +74,8 @@ G4GlobalMagFieldMessenger* B4DetectorConstruction::fMagFieldMessenger = 0;
 B4DetectorConstruction::B4DetectorConstruction()
  : G4VUserDetectorConstruction(),
    modulePV(0),
+   fAbsMateName(""),
+   fVoxelsAlongY(-1),
    fCheckOverlaps(true)
 {
 }
@@ -217,6 +219,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4int NofScinFibers = NofFibers/2;
   G4int NofCherFibers = NofFibers/2;
   G4int NofFibersrow = NofFibers/4;
+  fVoxelsAlongY = Nofmodules * NofFibersrow;
   G4int NofFiberscolumn = NofFibersrow;
   G4double moduleZ = 112.*cm;
   G4double moduleX = 12.*mm; 
@@ -272,6 +275,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   // Get materials for vacuum, absorber, scintillating and cherenkov fibers, SiPM
   G4Material* defaultMaterial = G4Material::GetMaterial("G4_Galactic"); // G4_AIR or G4_Galactic 
   G4Material* absorberMaterial = G4Material::GetMaterial("Brass"); // or Brass or G4_Cu or G4_Pb
+  fAbsMateName = absorberMaterial->GetName();
   G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
   G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
   G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
