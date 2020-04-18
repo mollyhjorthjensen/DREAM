@@ -69,6 +69,7 @@ B4aEventAction::~B4aEventAction()
 void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
 {  
   // initialisation per event
+  fVecPrimaryPolarization.clear();
   fVecShowerPDG.clear();
   fVecShowerCharge.clear();
   fVecShowerPosition.clear();
