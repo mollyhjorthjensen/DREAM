@@ -73,7 +73,7 @@ G4GlobalMagFieldMessenger* B4DetectorConstruction::fMagFieldMessenger = 0;
 
 B4DetectorConstruction::B4DetectorConstruction()
  : G4VUserDetectorConstruction(),
-   modulePV(0),
+  //  modulePV(0),
    fAbsMateName(""),
    fVoxelsAlongY(-1),
    fCheckOverlaps(true)
