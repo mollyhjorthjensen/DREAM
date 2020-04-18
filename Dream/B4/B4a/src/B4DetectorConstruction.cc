@@ -57,6 +57,7 @@
 #include "G4LogicalBorderSurface.hh"
 
 #include "G4SDManager.hh"
+#include "TrackerSD.hh"
 #include "G4SDParticleWithEnergyFilter.hh"
 #include "SiPMsd.hh"
 
@@ -72,7 +73,9 @@ G4GlobalMagFieldMessenger* B4DetectorConstruction::fMagFieldMessenger = 0;
 
 B4DetectorConstruction::B4DetectorConstruction()
  : G4VUserDetectorConstruction(),
-   modulePV(0),
+  //  modulePV(0),
+   fAbsMateName(""),
+   fVoxelsAlongY(-1),
    fCheckOverlaps(true)
 {
 }
@@ -216,6 +219,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4int NofScinFibers = NofFibers/2;
   G4int NofCherFibers = NofFibers/2;
   G4int NofFibersrow = NofFibers/4;
+  fVoxelsAlongY = Nofmodules * NofFibersrow;
   G4int NofFiberscolumn = NofFibersrow;
   G4double moduleZ = 112.*cm;
   G4double moduleX = 12.*mm; 
@@ -271,6 +275,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   // Get materials for vacuum, absorber, scintillating and cherenkov fibers, SiPM
   G4Material* defaultMaterial = G4Material::GetMaterial("G4_Galactic"); // G4_AIR or G4_Galactic 
   G4Material* absorberMaterial = G4Material::GetMaterial("Brass"); // or Brass or G4_Cu or G4_Pb
+  fAbsMateName = absorberMaterial->GetName();
   G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
   G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
   G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
@@ -1253,6 +1258,12 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
 void B4DetectorConstruction::ConstructSDandField()
 { 
   // --------------- sensitive detectors ------------------------
+  auto sdMan = G4SDManager::GetSDMpointer();
+  auto trackerSD = new TrackerSD("TrackerSD");
+  sdMan->AddNewDetector(trackerSD);
+  SetSensitiveDetector("World", trackerSD);
+
+  // SiPM particle and energy filter
   static const double hc = h_Planck * c_light;
   G4double elow = hc / (900. * nm);
   G4double ehigh = hc / (300. * nm);
@@ -1262,12 +1273,12 @@ void B4DetectorConstruction::ConstructSDandField()
 
   auto S_SiPMsd = new SiPMsd("S_SiPMsd", "S_HitsCollection", 71, 8);
   S_SiPMsd->SetFilter(SiPMfilter);
-  G4SDManager::GetSDMpointer()->AddNewDetector(S_SiPMsd);
+  sdMan->AddNewDetector(S_SiPMsd);
   SetSensitiveDetector("S_Si", S_SiPMsd, true);
 
   auto C_SiPMsd = new SiPMsd("C_SiPMsd", "C_HitsCollection", 71, 8);
   C_SiPMsd->SetFilter(SiPMfilter);
-  G4SDManager::GetSDMpointer()->AddNewDetector(C_SiPMsd);
+  sdMan->AddNewDetector(C_SiPMsd);
   SetSensitiveDetector("C_Si", C_SiPMsd, true);
 
   // --------------- fast simulation ----------------------------

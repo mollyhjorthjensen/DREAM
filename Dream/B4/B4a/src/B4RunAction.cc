@@ -128,39 +128,34 @@ void B4RunAction::BeginOfRunAction(const G4Run* run /*run*/)
   const B4aEventAction* constEventAction = static_cast<const B4aEventAction*>(G4RunManager::GetRunManager()->GetUserEventAction());
   B4aEventAction* eventAction = const_cast<B4aEventAction*>(constEventAction);
 
-
   // Create directories 
   //analysisManager->SetHistoDirectoryName("histograms");
   //analysisManager->SetNtupleDirectoryName("ntuple");
   analysisManager->SetVerboseLevel(0);
   analysisManager->SetFirstHistoId(0);
-
-  // Book histograms, ntuple
-  //
-  
-  // Creating histograms
-  //analysisManager->CreateH1("1","Edep in module", 100, 0., 1000*MeV);
-  //analysisManager->CreateH1("2","trackL in module", 100, 0., 1*m);
-  //analysisManager->CreateH1("3", "Edep in scintillating fibers", 100, 0., 1000*MeV);
   
   // Creating ntuple
   analysisManager->CreateNtuple("B4", "edep");
-  analysisManager->CreateNtupleDColumn("Energyem");
-  analysisManager->CreateNtupleDColumn("EnergyScin");
-  analysisManager->CreateNtupleDColumn("EnergyCher");
-  analysisManager->CreateNtupleDColumn("NofCherenkovDetected"); 
-  analysisManager->CreateNtupleDColumn("EnergyTot");
-  analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");
-  analysisManager->CreateNtupleIColumn("PrimaryParticlePDG");
+  analysisManager->CreateNtupleIColumn("PrimaryPDG");
+  analysisManager->CreateNtupleDColumn("PrimaryEnergy");
+  analysisManager->CreateNtupleDColumn("VecPrimaryPolarization", eventAction->GetVecPrimaryPolarization());
+  analysisManager->CreateNtupleIColumn("PrimaryDecayMode");
+  analysisManager->CreateNtupleDColumn("LateralLeakage");
   analysisManager->CreateNtupleSColumn("AbsorberMaterial");
-  analysisManager->CreateNtupleDColumn("EscapedEnergy");
-  analysisManager->CreateNtupleIColumn("VectorIndexCerenkov", eventAction->GetVectorIndexCerenkov());
-  analysisManager->CreateNtupleIColumn("VectorSignalCerenkov", eventAction->GetVectorSignalCerenkov());
-  analysisManager->CreateNtupleIColumn("VectorIndexScintillation", eventAction->GetVectorIndexScintillation());
-  analysisManager->CreateNtupleIColumn("VectorSignalScintillation", eventAction->GetVectorSignalScintillation());
-  
+  analysisManager->CreateNtupleIColumn("VoxelsAlongY");
+  analysisManager->CreateNtupleIColumn("VecShowerPDG", eventAction->GetVecShowerPDG());
+  analysisManager->CreateNtupleDColumn("VecShowerCharge", eventAction->GetVecShowerCharge());
+  analysisManager->CreateNtupleDColumn("VecShowerPosition", eventAction->GetVecShowerPosition());
+  analysisManager->CreateNtupleDColumn("VecShower4Momentum", eventAction->GetVecShower4Momentum());
+  analysisManager->CreateNtupleDColumn("VecShowerCkovCoMi", eventAction->GetVecShowerCkovCoMi());  
+  analysisManager->CreateNtupleDColumn("VecShowerCkovCoMj", eventAction->GetVecShowerCkovCoMj());  
+  analysisManager->CreateNtupleDColumn("VecShowerScntCoMi", eventAction->GetVecShowerScntCoMi());  
+  analysisManager->CreateNtupleDColumn("VecShowerScntCoMj", eventAction->GetVecShowerScntCoMj());  
+  analysisManager->CreateNtupleIColumn("VecIndexCkov", eventAction->GetVecIndexCkov());
+  analysisManager->CreateNtupleIColumn("VecSignalCkov", eventAction->GetVecSignalCkov());
+  analysisManager->CreateNtupleIColumn("VecIndexScnt", eventAction->GetVecIndexScnt());
+  analysisManager->CreateNtupleIColumn("VecSignalScnt", eventAction->GetVecSignalScnt());
   analysisManager->FinishNtuple();
-  //analysisManager->CreateNtupleDColumn("Scinintheglass");//if you want scintillating photons
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

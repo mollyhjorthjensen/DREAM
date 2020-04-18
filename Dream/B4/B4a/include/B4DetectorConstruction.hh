@@ -47,34 +47,19 @@ class B4DetectorConstruction : public G4VUserDetectorConstruction
     virtual G4VPhysicalVolume* Construct();
     virtual void ConstructSDandField();
 
-    // get methods
-    //
-    const G4VPhysicalVolume* GetmodulePV() const;
+    G4String GetAbsMateName() const { return fAbsMateName; }
+    G4int GetVoxelsAlongY() const { return fVoxelsAlongY; }
      
   private:
-    // methods
-    //
     void DefineMaterials();
     G4VPhysicalVolume* DefineVolumes();
   
-    // data members
-    //
-    static G4ThreadLocal G4GlobalMagFieldMessenger*  fMagFieldMessenger; 
-                                      // magnetic field messenger
+    static G4ThreadLocal G4GlobalMagFieldMessenger*  fMagFieldMessenger;  ///< magnetic field messenger
      
-    G4VPhysicalVolume*   modulePV; // the module physical volume
+    G4String fAbsMateName;
+    G4int fVoxelsAlongY;
     
-    G4bool  fCheckOverlaps; // option to activate checking of volumes overlaps
+    G4bool  fCheckOverlaps;   ///< checking if volumes overlap flag
 };
 
-// inline functions
-
-inline const G4VPhysicalVolume* B4DetectorConstruction::GetmodulePV() const { 
-  return modulePV; 
-}
-     
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 #endif
-

@@ -3,6 +3,7 @@ Dream/build
 *.out
 Run/sensitive_validation
 Run/fastsim_validation
+Run/shower_validation
 */.ipynb_checkpoints
 *.png
 .vscode
