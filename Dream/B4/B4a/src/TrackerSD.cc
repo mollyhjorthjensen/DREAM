@@ -41,13 +41,14 @@ G4bool TrackerSD::IsLateralBoundary(const G4ThreeVector globalPoint)
   G4ThreeVector norm = caloS->SurfaceNormal(localPoint);
 
   auto inSolid = caloS->Inside(localPoint);
-  if (inSolid != kSurface)
-  {
-    G4cout << globalPoint << "\t" << localPoint << G4endl;
-    G4ExceptionDescription msg;
-    msg << "Hit not on surface";
-    G4Exception("TrackerSD::IsLateralBoundary()", "MyCode0004", FatalException, msg);
-  }
+  if (inSolid != kSurface) return false;
+  // if (inSolid != kSurface)
+  // {
+  //   G4cout << globalPoint << "\t" << localPoint << G4endl;
+  //   G4ExceptionDescription msg;
+  //   msg << "Hit not on surface";
+  //   G4Exception("TrackerSD::IsLateralBoundary()", "MyCode0004", FatalException, msg);
+  // }
 
   if (norm.z() == 0) return true;
   else return false;
@@ -61,8 +62,7 @@ G4bool TrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
   
   // get user track information
   auto info = static_cast<TrackInfo *>(aTrack->GetUserInformation());
-  if (!info && aStep->IsLastStepInVolume() 
-      && (postStep->GetStepStatus() == fGeomBoundary)) {
+  if (!info && (aStep->IsLastStepInVolume()) && (postStep->GetStepStatus() == fGeomBoundary)) {
     // add user information to track
     G4int showerID = fpHitsCollection->entries();
     info = new TrackInfo(showerID);
@@ -72,8 +72,7 @@ G4bool TrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
     TrackerHit *hit = new TrackerHit(showerID, *postStep, aTrack->GetParticleDefinition());
     fpHitsCollection->insert(hit);
     return true;
-  } else if (info && aStep->IsFirstStepInVolume() 
-      && (preStep->GetStepStatus() == fGeomBoundary)) {
+  } else if (info && (aStep->IsFirstStepInVolume()) && (preStep->GetStepStatus() == fGeomBoundary)) {
     if (IsLateralBoundary(preStep->GetPosition())) {
       G4int showerID = info->GetShowerID();
       auto hit = static_cast<TrackerHit *>(fpHitsCollection->GetHit(showerID));
