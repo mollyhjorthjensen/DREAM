@@ -138,7 +138,6 @@ void B4RunAction::BeginOfRunAction(const G4Run* run /*run*/)
   analysisManager->CreateNtuple("B4", "edep");
   analysisManager->CreateNtupleIColumn("PrimaryPDG");
   analysisManager->CreateNtupleDColumn("PrimaryEnergy");
-  analysisManager->CreateNtupleDColumn("VecPrimaryPolarization", eventAction->GetVecPrimaryPolarization());
   analysisManager->CreateNtupleIColumn("PrimaryDecayMode");
   analysisManager->CreateNtupleDColumn("LateralLeakage");
   analysisManager->CreateNtupleSColumn("AbsorberMaterial");
