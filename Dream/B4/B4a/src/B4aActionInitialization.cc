@@ -29,7 +29,7 @@
 /// \brief Implementation of the B4aActionInitialization class
 
 #include "B4aActionInitialization.hh"
-#include "B4PrimaryGeneratorAction.hh"
+#include "PrimaryGeneratorAction.hh"
 #include "B4RunAction.hh"
 #include "B4aEventAction.hh"
 #include "TrackingAction.hh"
@@ -56,7 +56,7 @@ void B4aActionInitialization::BuildForMaster() const
 
 void B4aActionInitialization::Build() const
 {
-  SetUserAction(new B4PrimaryGeneratorAction);
+  SetUserAction(new PrimaryGeneratorAction);
   SetUserAction(new B4RunAction);
   SetUserAction(new B4aEventAction);
   SetUserAction(new TrackingAction);
