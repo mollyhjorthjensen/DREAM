@@ -49,7 +49,6 @@ class B4aEventAction : public G4UserEventAction
     virtual void  BeginOfEventAction(const G4Event* event);
     virtual void    EndOfEventAction(const G4Event* event);
     
-    std::vector<G4double>& GetVecPrimaryPolarization() { return fVecPrimaryPolarization; }
     std::vector<G4int>& GetVecShowerPDG() { return fVecShowerPDG; }
     std::vector<G4double>& GetVecShowerCharge() { return fVecShowerCharge; }
     std::vector<G4double>& GetVecShowerPosition() { return fVecShowerPosition; }
@@ -66,6 +65,7 @@ class B4aEventAction : public G4UserEventAction
   private:
     G4String fAbsMateName;  ///< Absorber material name
     G4int fVoxelsAlongY;
+    G4bool fUseHepMC;
 
     TrackerHitsCollection* GetTrackerHitsCollection(G4int hcID, const G4Event* event) const;
     SiPMhitsCollection* GetSiPMhitsCollection(G4int hcID, const G4Event* event) const;
@@ -78,7 +78,6 @@ class B4aEventAction : public G4UserEventAction
       kNProc  ///< Number of processes
     };
 
-    std::vector<G4double> fVecPrimaryPolarization;
     std::vector<G4int> fVecShowerPDG;
     std::vector<G4double> fVecShowerCharge;
     std::vector<G4double> fVecShowerPosition;
