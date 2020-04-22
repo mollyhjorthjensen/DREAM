@@ -42,6 +42,7 @@
 #include <numeric>
 #include <functional>
 #include <algorithm>
+#include <unordered_set>
 
 #include "TrackerSD.hh"
 #include "TrackerHit.hh"
@@ -49,6 +50,7 @@
 #include "G4SDManager.hh"
 
 #include "B4DetectorConstruction.hh"
+#include "PrimaryGeneratorAction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -56,6 +58,7 @@ B4aEventAction::B4aEventAction()
  : G4UserEventAction(),
    fAbsMateName(""),
    fVoxelsAlongY(-1),
+   fUseHepMC(false),
    fTrackerHCID(-1)
 {}
 
@@ -69,7 +72,6 @@ B4aEventAction::~B4aEventAction()
 void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
 {  
   // initialisation per event
-  fVecPrimaryPolarization.clear();
   fVecShowerPDG.clear();
   fVecShowerCharge.clear();
   fVecShowerPosition.clear();
@@ -88,6 +90,11 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
   auto detector = const_cast<B4DetectorConstruction*>(constDetector);
   fAbsMateName = detector->GetAbsMateName();
   fVoxelsAlongY = detector->GetVoxelsAlongY();
+
+  auto constUserPrimAction = G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
+  auto constPrimAction = static_cast<const PrimaryGeneratorAction*>(constUserPrimAction);
+  auto primAction = const_cast<PrimaryGeneratorAction*>(constPrimAction);
+  fUseHepMC = primAction->GetHepMCGenerator();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -108,7 +115,7 @@ B4aEventAction::GetTrackerHitsCollection(G4int hcID,
   }         
 
   return hitsCollection;
-}    
+}
 
 SiPMhitsCollection* 
 B4aEventAction::GetSiPMhitsCollection(G4int hcID,
@@ -126,7 +133,7 @@ B4aEventAction::GetSiPMhitsCollection(G4int hcID,
   }         
 
   return hitsCollection;
-}  
+}
 
 std::tuple<std::vector<int>, std::vector<int>> B4aEventAction::GetVectors(SiPMhitsCollection *HC) const {
   std::vector<int> keys;
@@ -162,12 +169,47 @@ std::tuple<G4double, G4double> B4aEventAction::GetCentreOfMass(SiPMhitsCollectio
 
 void B4aEventAction::EndOfEventAction(const G4Event* event)
 {
-  G4int mode = -1;
-
   // get analysis manager
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   
+  // get primary particle properties and decay mode
   G4PrimaryParticle *primary = event->GetPrimaryVertex()->GetPrimary();
+  G4int primaryPDG = primary->GetPDGcode();
+  G4double primaryEnergy = primary->GetTotalEnergy();
+  G4int primaryDecayMode = 0;
+  if (fUseHepMC) {
+    G4PrimaryVertex *vrtx;
+    std::unordered_set<int> finalStates;
+    primaryPDG = 15;
+    primaryEnergy = 0.;
+    G4int nOfFinalStates = 0;
+    for (G4int i=0; i<event->GetNumberOfPrimaryVertex(); ++i) {
+      vrtx = event->GetPrimaryVertex(i);
+      for (G4int j=0; j<vrtx->GetNumberOfParticle(); ++j) {
+        primary = vrtx->GetPrimary(j);
+        finalStates.insert(primary->GetPDGcode());
+        primaryEnergy += primary->GetTotalEnergy();
+        nOfFinalStates += 1;
+      }
+    }
+    std::unordered_set electronMode = {16, -12, 11};
+    std::unordered_set muonMode = {-14, 16, 13};
+    std::unordered_set pionMode = {-211, 16};
+    std::unordered_set rhoORa1Mode = {-211, 16, 111};
+    if (finalStates == electronMode) {
+      primaryDecayMode = 1;
+    } else if (finalStates == muonMode) {
+      primaryDecayMode = 2;
+    } else if (finalStates == pionMode) {
+      primaryDecayMode = 3;
+    } else if (finalStates == rhoORa1Mode) {
+      if (nOfFinalStates == 3) {  // rho mode
+        primaryDecayMode = 4;
+      } else if (nOfFinalStates == 4) {  // a1 mode
+        primaryDecayMode = 5;
+      }
+    }
+  }
 
   auto sdMan = G4SDManager::GetSDMpointer();
 
@@ -179,6 +221,7 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   // Get hits collection
   auto trackerHC = GetTrackerHitsCollection(fTrackerHCID, event);
   G4double lateralLeakage = 0.;
+  G4double totalShowerEnergy = 0.;
 
   std::array<const SiPMsd *, kNProc> sdArray;
   sdArray.at(kCkov) = static_cast<const SiPMsd *>(sdMan->FindSensitiveDetector("C_SiPMsd"));
@@ -197,6 +240,7 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
     fVecShowerPosition.push_back(position.y());
     fVecShowerPosition.push_back(position.z());
     fVecShower4Momentum.push_back(hit->GetTotalEnergy());
+    totalShowerEnergy += hit->GetTotalEnergy();
     fVecShower4Momentum.push_back(momentum.x());
     fVecShower4Momentum.push_back(momentum.y());
     fVecShower4Momentum.push_back(momentum.z());
@@ -226,15 +270,12 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   }
 
   // fill ntuple event by event
-  analysisManager->FillNtupleIColumn(0, primary->GetPDGcode());
-  analysisManager->FillNtupleDColumn(1, primary->GetTotalEnergy());
-  fVecPrimaryPolarization.push_back(primary->GetPolX());
-  fVecPrimaryPolarization.push_back(primary->GetPolY());
-  fVecPrimaryPolarization.push_back(primary->GetPolZ());
-  analysisManager->FillNtupleIColumn(3, mode);
-  analysisManager->FillNtupleDColumn(4, lateralLeakage);
-  analysisManager->FillNtupleSColumn(5, fAbsMateName);
-  analysisManager->FillNtupleIColumn(6, fVoxelsAlongY);
+  analysisManager->FillNtupleIColumn(0, primaryPDG);
+  analysisManager->FillNtupleDColumn(1, primaryEnergy);
+  analysisManager->FillNtupleIColumn(2, primaryDecayMode);
+  analysisManager->FillNtupleDColumn(3, lateralLeakage / totalShowerEnergy);
+  analysisManager->FillNtupleSColumn(4, fAbsMateName);
+  analysisManager->FillNtupleIColumn(5, fVoxelsAlongY);
 
   analysisManager->AddNtupleRow();
 }

@@ -23,44 +23,48 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: B4PrimaryGeneratorAction.hh 95508 2016-02-12 13:52:06Z gcosmo $
-// 
-/// \file B4PrimaryGeneratorAction.hh
-/// \brief Definition of the B4PrimaryGeneratorAction class
+/// \file eventgenerator/HepMC/HepMCEx01/src/HepMCG4AsciiReader.cc
+/// \brief Implementation of the HepMCG4AsciiReader class
+//
+//
 
-#ifndef B4PrimaryGeneratorAction_h
-#define B4PrimaryGeneratorAction_h 1
+#include "HepMCG4AsciiReader.hh"
+#include "HepMCG4AsciiReaderMessenger.hh"
 
-#include "G4VUserPrimaryGeneratorAction.hh"
-#include "globals.hh"
-
-class G4GeneralParticleSource;
-//class G4ParticleGun;
-class G4Event;
-
-/// The primary generator action class with particle gum.
-///
-/// It defines a single particle which hits the calorimeter 
-/// perpendicular to the input face. The type of the particle
-/// can be changed via the G4 build-in commands of G4ParticleGun class 
-/// (see the macros provided with this example).
-
-class B4PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
-{
-public:
-  B4PrimaryGeneratorAction();    
-  virtual ~B4PrimaryGeneratorAction();
-
-  virtual void GeneratePrimaries(G4Event* event);
-  
-  // set methods
-  void SetRandomFlag(G4bool value);
-
-private:
-   G4GeneralParticleSource* fGeneralParticleSource;
-  //G4ParticleGun*  fParticleGun; // G4 particle gun
-};
+#include <iostream>
+#include <fstream>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+HepMCG4AsciiReader::HepMCG4AsciiReader()
+  :  filename("xxx.dat"), verbose(0)
+{
+  asciiInput= new HepMC::IO_GenEvent(filename.c_str(), std::ios::in);
 
-#endif
+  messenger= new HepMCG4AsciiReaderMessenger(this);
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+HepMCG4AsciiReader::~HepMCG4AsciiReader()
+{
+  delete asciiInput;
+  delete messenger;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void HepMCG4AsciiReader::Initialize()
+{
+  delete asciiInput;
+
+  asciiInput= new HepMC::IO_GenEvent(filename.c_str(), std::ios::in);
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+HepMC::GenEvent* HepMCG4AsciiReader::GenerateHepMCEvent()
+{
+  HepMC::GenEvent* evt= asciiInput-> read_next_event();
+  if(!evt) return 0; // no more event
+
+  if(verbose>0) evt-> print();
+
+  return evt;
+}

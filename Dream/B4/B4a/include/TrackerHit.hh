@@ -30,7 +30,7 @@ public:
   inline void operator delete(void *aHit);
 
   void AddLateralLeakage(G4double leakage) { fLateralLeakage += leakage; }
-  G4double GetLateralLeakage() const {return fLateralLeakage / fStepPoint.GetTotalEnergy(); } 
+  G4double GetLateralLeakage() const {return fLateralLeakage; } 
 
   G4int GetShowerID() const { return fShowerID; }
   G4int GetPDGEncoding() const { return fpParticleType->GetPDGEncoding(); }

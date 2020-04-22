@@ -23,43 +23,71 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: B4aActionInitialization.cc 68058 2013-03-13 14:47:43Z gcosmo $
+/// \file eventgenerator/HepMC/HepMCEx01/src/HepMCG4AsciiReaderMessenger.cc
+/// \brief Implementation of the HepMCG4AsciiReaderMessenger class
 //
-/// \file B4aActionInitialization.cc
-/// \brief Implementation of the B4aActionInitialization class
+//
+#include "G4UIdirectory.hh"
+#include "G4UIcmdWithoutParameter.hh"
+#include "G4UIcmdWithAString.hh"
+#include "G4UIcmdWithAnInteger.hh"
+#include "HepMCG4AsciiReaderMessenger.hh"
+#include "HepMCG4AsciiReader.hh"
 
-#include "B4aActionInitialization.hh"
-#include "PrimaryGeneratorAction.hh"
-#include "B4RunAction.hh"
-#include "B4aEventAction.hh"
-#include "TrackingAction.hh"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-B4aActionInitialization::B4aActionInitialization()
-  : G4VUserActionInitialization()
-{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-B4aActionInitialization::~B4aActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void B4aActionInitialization::BuildForMaster() const
+HepMCG4AsciiReaderMessenger::HepMCG4AsciiReaderMessenger
+                             (HepMCG4AsciiReader* agen)
+  : gen(agen)
 {
-  SetUserAction(new B4RunAction);
+  dir= new G4UIdirectory("/generator/hepmcAscii/");
+  dir-> SetGuidance("Reading HepMC event from an Ascii file");
+
+  verbose=
+    new G4UIcmdWithAnInteger("/generator/hepmcAscii/verbose", this);
+  verbose-> SetGuidance("Set verbose level");
+  verbose-> SetParameterName("verboseLevel", false, false);
+  verbose-> SetRange("verboseLevel>=0 && verboseLevel<=1");
+
+  open= new G4UIcmdWithAString("/generator/hepmcAscii/open", this);
+  open-> SetGuidance("(re)open data file (HepMC Ascii format)");
+  open-> SetParameterName("input ascii file", true, true);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void B4aActionInitialization::Build() const
+HepMCG4AsciiReaderMessenger::~HepMCG4AsciiReaderMessenger()
 {
-  SetUserAction(new PrimaryGeneratorAction);
-  SetUserAction(new B4RunAction);
-  SetUserAction(new B4aEventAction);
-  SetUserAction(new TrackingAction);
-}  
+  delete verbose;
+  delete open;
+
+  delete dir;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void HepMCG4AsciiReaderMessenger::SetNewValue(G4UIcommand* command,
+                                              G4String newValues)
+{
+  if (command==verbose) {
+    int level= verbose-> GetNewIntValue(newValues);
+    gen-> SetVerboseLevel(level);
+  } else if (command==open) {
+    gen-> SetFileName(newValues);
+    G4cout << "HepMC Ascii inputfile: "
+           << gen-> GetFileName() << G4endl;
+    gen-> Initialize();
+  }
+}
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+G4String HepMCG4AsciiReaderMessenger::GetCurrentValue(G4UIcommand* command)
+{
+  G4String cv;
+
+  if (command == verbose) {
+    cv= verbose-> ConvertToString(gen-> GetVerboseLevel());
+  } else  if (command == open) {
+    cv= gen-> GetFileName();
+  }
+  return cv;
+}

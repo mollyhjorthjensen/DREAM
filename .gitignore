@@ -4,6 +4,8 @@ Dream/build
 Run/sensitive_validation
 Run/fastsim_validation
 Run/shower_validation
+Run/hepmc_validation
 */.ipynb_checkpoints
 *.png
+*.pyc
 .vscode

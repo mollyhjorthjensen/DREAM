@@ -23,43 +23,66 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: B4aActionInitialization.cc 68058 2013-03-13 14:47:43Z gcosmo $
+/// \file eventgenerator/HepMC/HepMCEx01/include/HepMCG4AsciiReader.hh
+/// \brief Definition of the HepMCG4AsciiReader class
 //
-/// \file B4aActionInitialization.cc
-/// \brief Implementation of the B4aActionInitialization class
+//
 
-#include "B4aActionInitialization.hh"
-#include "PrimaryGeneratorAction.hh"
-#include "B4RunAction.hh"
-#include "B4aEventAction.hh"
-#include "TrackingAction.hh"
+#ifndef HEPMC_G4_ASCII_READER_H
+#define HEPMC_G4_ASCII_READER_H
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+#include "HepMCG4Interface.hh"
+#include "HepMC/IO_GenEvent.h"
 
-B4aActionInitialization::B4aActionInitialization()
-  : G4VUserActionInitialization()
-{}
+class HepMCG4AsciiReaderMessenger;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+class HepMCG4AsciiReader : public HepMCG4Interface {
+protected:
+  G4String filename;
+  HepMC::IO_GenEvent* asciiInput;
 
-B4aActionInitialization::~B4aActionInitialization()
-{}
+  G4int verbose;
+  HepMCG4AsciiReaderMessenger* messenger;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+  virtual HepMC::GenEvent* GenerateHepMCEvent();
 
-void B4aActionInitialization::BuildForMaster() const
+public:
+  HepMCG4AsciiReader();
+  ~HepMCG4AsciiReader();
+
+  // set/get methods
+  void SetFileName(G4String name);
+  G4String GetFileName() const;
+
+  void SetVerboseLevel(G4int i);
+  G4int GetVerboseLevel() const; 
+
+  // methods...
+  void Initialize();
+};
+
+// ====================================================================
+// inline functions
+// ====================================================================
+
+inline void HepMCG4AsciiReader::SetFileName(G4String name)
 {
-  SetUserAction(new B4RunAction);
+  filename= name;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void B4aActionInitialization::Build() const
+inline G4String HepMCG4AsciiReader::GetFileName() const
 {
-  SetUserAction(new PrimaryGeneratorAction);
-  SetUserAction(new B4RunAction);
-  SetUserAction(new B4aEventAction);
-  SetUserAction(new TrackingAction);
-}  
+  return filename;
+}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+inline void HepMCG4AsciiReader::SetVerboseLevel(G4int i)
+{
+  verbose= i;
+}
+
+inline G4int HepMCG4AsciiReader::GetVerboseLevel() const
+{
+  return verbose;
+}
+
+#endif

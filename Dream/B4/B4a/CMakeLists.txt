@@ -20,10 +20,22 @@ endif()
 
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
+include(${Geant4_USE_FILE})
+
+#----------------------------------------------------------------------------
+# HepMC examples require HepMC
+#
+find_package(HepMC REQUIRED)
+if(HEPMC_FOUND)
+  message(STATUS "G4 Examples: HepMC found.")
+else()
+  message(STATUS "G4 Examples: HepMC NOT found.")
+endif()
+
+#----------------------------------------------------------------------------
 # Setup include directory for this project
 #
-include(${Geant4_USE_FILE})
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/include ${Geant4_INCLUDE_DIR} ${HEPMC_INCLUDE_DIR})
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -36,7 +48,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(exampleB4a exampleB4a.cc ${sources} ${headers})
-target_link_libraries(exampleB4a ${Geant4_LIBRARIES})
+target_link_libraries(exampleB4a ${Geant4_LIBRARIES} ${HEPMC_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
