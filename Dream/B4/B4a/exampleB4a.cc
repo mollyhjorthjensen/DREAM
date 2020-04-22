@@ -120,8 +120,7 @@ int main(int argc,char** argv)
   // if you want to use FTFP_BERT without optical physics
   //G4VModularPhysicsList* physicsList = new FTFP_BERT;
   //runManager->SetUserInitialization(physicsList);
-  G4String physName = "FTFP_BERT"; //"FTFP_BERT", "QGSP_BERT"
-  runManager->SetUserInitialization(new PhysicsList(physName));
+  runManager->SetUserInitialization(new PhysicsList());
   
   B4aActionInitialization* actionInitialization = new B4aActionInitialization();
   runManager->SetUserInitialization(actionInitialization);
