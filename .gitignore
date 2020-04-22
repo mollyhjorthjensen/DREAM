@@ -7,4 +7,5 @@ Run/shower_validation
 Run/hepmc_validation
 */.ipynb_checkpoints
 *.png
+*.pyc
 .vscode
