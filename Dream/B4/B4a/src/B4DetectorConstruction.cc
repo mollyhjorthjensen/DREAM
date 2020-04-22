@@ -101,109 +101,24 @@ G4VPhysicalVolume* B4DetectorConstruction::Construct()
 
 void B4DetectorConstruction::DefineMaterials()
 { 
-  // Copper material defined using NIST Manager
-  // I use Cu as default absorber material but you can switch to lead
-  //G4NistManager* CunistManager = G4NistManager::Instance();
-  //CunistManager->FindOrBuildMaterial("G4_Cu");
+  G4NistManager::Instance()->FindOrBuildMaterial("G4_Pb");
+  G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE");
+  G4NistManager::Instance()->FindOrBuildMaterial("G4_PLEXIGLASS");
+  G4NistManager::Instance()->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
+  G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
+  G4NistManager::Instance()->FindOrBuildMaterial("G4_Si");
+  // G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
   
-  //G4NistManager* FenistManager = G4NistManager::Instance();
-  //FenistManager->FindOrBuildMaterial("G4_Fe");
+  // Fluorinated Polymer (C2F2)
+  G4Material *fluorinatedPolymer = new G4Material("FluorinatedPolymer", 1.43 * g / cm3, 2, kStateSolid); // Kuraray
+  fluorinatedPolymer->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 2);
+  fluorinatedPolymer->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), 2);
 
-  //G4NistManager* WnistManager = G4NistManager::Instance();
-  //WnistManager->FindOrBuildMaterial("G4_W");
+  // Cartridge Brass 70/30, C26000
+  G4Material *brass = new G4Material("Brass", 0.308 * 27.68 * g / cm3, 2, kStateSolid);
+  brass->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cu"), 70 * perCent);
+  brass->AddElement(G4NistManager::Instance()->FindOrBuildElement("Zn"), 30 * perCent);
 
-  // Lead material defined using NIST Manager
-   G4NistManager* PbnistManager = G4NistManager::Instance();
-   PbnistManager->FindOrBuildMaterial("G4_Pb");
-
-  // Platinum material defined using NIST Manager
-  // G4NistManager* PtnistManager = G4NistManager::Instance();
-  // PtnistManager->FindOrBuildMaterial("G4_Pt");
-
-  // Alluminium material defined using NIST Manager
-  // G4NistManager* AlnistManager = G4NistManager::Instance();
-  // AlnistManager->FindOrBuildMaterial("G4_Al");
-
-  // Polystyrene material defined using NIST Manager
-  // I use this material for the core of plastic scintillating fibers
-  // cannot find any G4_Polystyrene, I build it later
-  //G4NistManager* PynistManager = G4NistManager::Instance();
-  //PynistManager->FindOrBuildMaterial("G4_Polystyrene");
-
-  // PMMA material, there's no default G4_PMMA, I build it (C502H8)
-  G4String name, symbol;    // a=mass of a mole;
-  G4double a, z;            // z=mean number of protons;  
-  
-  // create elements
-  a = 1.01*g/mole;
-  G4Element* elH  = new G4Element(name="Hydrogen",symbol="H" , z= 1., a); //Hidrogen
-
-  a = 12.01*g/mole;
-  G4Element* elC  = new G4Element(name="Carbon"  ,symbol="C" , z= 6., a); //Carbon
-
-  a = 16.00*g/mole;
-  G4Element* elO  = new G4Element(name="Oxygen"  ,symbol="O" , z= 8., a); //Oxygen
-
-  a = 28.09*g/mole;
-  G4Element* elSi = new G4Element(name="Silicon", symbol="Si", z=14., a); //Silicon
-  
-  a = 18.9984*g/mole;
-  G4Element* elF  = new G4Element("Fluorine",symbol="F" , z= 9., a); //Fluorine
-
-  a = 63.546*g/mole;
-  G4Element* elCu = new G4Element("Copper", symbol="Cu", z=29., a); //Copper
-
-  a = 65.38*g/mole;
-  G4Element* elZn = new G4Element("Zinc", symbol="Zn", z=30., a); //Zinc
-  
-  // create PMMA
-  G4Material* PMMA = new G4Material("PMMA", 1.19*g/cm3, 3); //name, density and number of elements
-  PMMA -> AddElement(elC, 5);
-  PMMA -> AddElement(elO, 2);
-  PMMA -> AddElement(elH, 8); //PMMA building complete
-
-  // create Polystyrene (C5H5)
-  G4Material* Polystyrene = new G4Material("Polystyrene", 1.05*g/cm3, 2);
-  Polystyrene -> AddElement(elC, 8);
-  Polystyrene -> AddElement(elH, 8); //Polystyrene building complete
-
-  // create Fluorinated Polymer (C2F2)
-  // I use it for the cladding of the Cherenkov fibers
-  G4Material* fluorinatedPolymer =
-  new G4Material("Fluorinated_Polymer", 1.43*g/cm3, 2);
-  fluorinatedPolymer->AddElement(elC,2);
-  fluorinatedPolymer->AddElement(elF,2);
-  //fluorinatedPolymer->AddElement(H,2); //Fluorinated Polymer building complete
-
-  // create Glass (SiO2)
-  G4Material* Glass = new G4Material("Glass", 2.4*g/cm3, 2);
-  Glass -> AddElement(elSi, 1);
-  Glass -> AddElement(elO, 2); //Glass building complete
-
-  // Vacuum material defined using NIST Manager
-  G4NistManager* VanistManager = G4NistManager::Instance();
-  VanistManager->FindOrBuildMaterial("G4_Galactic");
-
-  // Silicon material defined using NIST Manager
-  G4NistManager* SinistManager = G4NistManager::Instance();
-  SinistManager->FindOrBuildMaterial("G4_Si");
-
-  // create Cu260 (Brass)
-  // I use it for the absorber of the real small beam tested module
-  double density = 8.53*g/cm3;
-  int ncomponentsbrass = 2;
-  G4Material* Cu260 = new G4Material(name="Brass", density, ncomponentsbrass);
-  Cu260->AddElement(elCu, 70*perCent);
-  Cu260->AddElement(elZn, 30*perCent);
-
-  // Air material defined using NIST Manager
-  // You can use Air instead of vacuum
-  G4NistManager* AinistManager = G4NistManager::Instance();
-  AinistManager->FindOrBuildMaterial("G4_AIR");
-
-  // Print materials 
-  // I don't want to print materials all the times,
-  // if you want uncomment it
   //G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 }
 
@@ -274,13 +189,13 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
   // Get materials for vacuum, absorber, scintillating and cherenkov fibers, SiPM
   G4Material* defaultMaterial = G4Material::GetMaterial("G4_Galactic"); // G4_AIR or G4_Galactic 
-  G4Material* absorberMaterial = G4Material::GetMaterial("Brass"); // or Brass or G4_Cu or G4_Pb
+  G4Material* absorberMaterial = G4Material::GetMaterial("Brass");      // Brass or G4_Pb
   fAbsMateName = absorberMaterial->GetName();
-  G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
-  G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
-  G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
+  G4Material* ScinMaterial = G4Material::GetMaterial("G4_POLYSTYRENE");
+  G4Material* CherMaterial = G4Material::GetMaterial("G4_PLEXIGLASS");
+  G4Material* GlassMaterial = G4Material::GetMaterial("G4_SILICON_DIOXIDE");
   G4Material* SiMaterial = G4Material::GetMaterial("G4_Si");
-  G4Material* CladCherMaterial = G4Material::GetMaterial("Fluorinated_Polymer");
+  G4Material* CladCherMaterial = G4Material::GetMaterial("FluorinatedPolymer");
 
   // I need to specify the optical properties of the scintillating fiber material,
   // optical proprieties are different from scintillating proprieties and 
@@ -299,7 +214,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
               3.353*eV, 3.446*eV, 3.545*eV, 3.649*eV,
               3.760*eV, 3.877*eV, 4.002*eV, 4.136*eV }; //4.1eV is 300nm UV (cherenkov peak is 310-350nm)
 
-  G4double rindexScin[ENTRIES] =
+  G4double rindexScin[ENTRIES] =  // Kuraray
             { 1.59, 1.59, 1.59, 1.59,
               1.59, 1.59, 1.59, 1.59,
               1.59, 1.59, 1.59, 1.59,
@@ -309,28 +224,25 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
               1.59, 1.59, 1.59, 1.59,
               1.59, 1.59, 1.59, 1.59 };
 
-  G4double absorptionScin[ENTRIES] =
-             { 400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm };
-
-  // I don't want any ABSLENGTH for the scintillating and cherenkov fibers
-  // I take into account in parameterization of photon transportation
-  // if you want uncomment it             
+  G4double absorptionScin[ENTRIES] =  // Kuraray
+             { 467*cm, 467*cm, 467*cm, 467*cm,
+               467*cm, 467*cm, 467*cm, 467*cm,
+               467*cm, 467*cm, 467*cm, 467*cm,
+               467*cm, 467*cm, 467*cm, 467*cm,
+               467*cm, 467*cm, 467*cm, 467*cm,
+               467*cm, 467*cm, 467*cm, 467*cm,
+               467*cm, 467*cm, 467*cm, 467*cm,
+               467*cm, 467*cm, 467*cm, 467*cm };
+         
   G4MaterialPropertiesTable *MPTScin = new G4MaterialPropertiesTable();
   MPTScin -> AddProperty("RINDEX", photonEnergy, rindexScin, ENTRIES)->SetSpline(true);
-  //MPTScin -> AddProperty("ABSLENGTH", photonEnergy, absorptionScin, ENTRIES)->SetSpline(true);
+  MPTScin -> AddProperty("ABSLENGTH", photonEnergy, absorptionScin, ENTRIES)->SetSpline(true);
 
   // I need to specify the optical proprieties of the cherenkov fiber material
   // there are no scintillating proprieties for PMMA (clear fibres)
   // we don't have to add WLS proprieties
 
-  G4double rindexCher[ENTRIES] =
+  G4double rindexCher[ENTRIES] =    // SK-40 product information
             { 1.49, 1.49, 1.49, 1.49,
               1.49, 1.49, 1.49, 1.49,
               1.49, 1.49, 1.49, 1.49,
@@ -340,7 +252,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
               1.49, 1.49, 1.49, 1.49,
               1.49, 1.49, 1.49, 1.49 };
 
- G4double absorptionCher[ENTRIES] = 
+ G4double absorptionCher[ENTRIES] =   // missing reference
             { 890*cm, 890*cm, 890*cm, 890*cm,
               890*cm, 890*cm, 890*cm, 890*cm,
               890*cm, 890*cm, 890*cm, 890*cm,
@@ -352,12 +264,12 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
   G4MaterialPropertiesTable *MPTCher = new G4MaterialPropertiesTable();
   MPTCher -> AddProperty("RINDEX", photonEnergy, rindexCher, ENTRIES)->SetSpline(true);
-  //MPTCher -> AddProperty("ABSLENGTH", photonEnergy, absorptionCher, ENTRIES)->SetSpline(true);
+  MPTCher -> AddProperty("ABSLENGTH", photonEnergy, absorptionCher, ENTRIES)->SetSpline(true);
   CherMaterial -> SetMaterialPropertiesTable(MPTCher);
 
   // I need to specify the optical proprieties of the cherenkov cladding material
 
-  G4double rindexCherclad[ENTRIES] =
+  G4double rindexCherclad[ENTRIES] =  // Kuraray
             { 1.42, 1.42, 1.42, 1.42,
               1.42, 1.42, 1.42, 1.42,
               1.42, 1.42, 1.42, 1.42,
@@ -435,7 +347,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
   // I need to specify the optical proprieties of the glass material
 
-  G4double rindexglass[ENTRIES] =
+  G4double rindexglass[ENTRIES] =   // Hamamatsu
             { 1.51, 1.51, 1.51, 1.51,
               1.51, 1.51, 1.51, 1.51,
               1.51, 1.51, 1.51, 1.51,
@@ -451,7 +363,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
   // I need to specify the optical proprieties of the Si material
 
-  G4double rindexSi[ENTRIES] =
+  G4double rindexSi[ENTRIES] =    // missing reference
             { 3.42, 3.42, 3.42, 3.42,
               3.42, 3.42, 3.42, 3.42,
               3.42, 3.42, 3.42, 3.42,
@@ -461,7 +373,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
               3.42, 3.42, 3.42, 3.42,
               3.42, 3.42, 3.42, 3.42 };
 
-  G4double absorptionSi[ENTRIES] = 
+  G4double absorptionSi[ENTRIES] =    // missing reference
             { 0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
               0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
               0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
@@ -506,7 +418,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   MPTScin -> AddProperty("SLOWCOMPONENT", photonEnergy, Scin_SLOW, ENTRIES);
   MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV); // Typical is 10000./MeV (this is what makes full simulations long as hell)
   MPTScin -> AddConstProperty("RESOLUTIONSCALE", 1.0); // Broad the fluctuation of photons produced
-  MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns);
+  MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns);  // Kuraray
   MPTScin -> AddConstProperty("SLOWTIMECONSTANT", 10.*ns);
   MPTScin -> AddConstProperty("YIELDRATIO", 1.0); // I don't want a slow component, if you want it must change
   ScinMaterial -> SetMaterialPropertiesTable(MPTScin);
@@ -826,15 +738,15 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   OpSurfaceGlassSi -> SetModel(glisur);
   OpSurfaceGlassSi -> SetFinish(polished);
 
-  G4double efficiencyOpSurfaceGlassSi[ENTRIES] =     // detection efficiency 
-                                    { 0.25, 0.25, 0.25, 0.25,
-                                      0.25, 0.25, 0.25, 0.25,
-                                      0.25, 0.25, 0.25, 0.25,
-                                      0.25, 0.25, 0.25, 0.25,
-                                      0.25, 0.25, 0.25, 0.25,
-                                      0.25, 0.25, 0.25, 0.25,
-                                      0.25, 0.25, 0.25, 0.25,
-                                      0.25, 0.25, 0.25, 0.25};
+  G4double efficiencyOpSurfaceGlassSi[ENTRIES] =     // detection efficiency from Hamamatsu
+                                    {0.1762, 0.1823, 0.1897, 0.1972,
+                                     0.2037, 0.2102, 0.2151, 0.2202,
+                                     0.2241, 0.2282, 0.2351, 0.2421,
+                                     0.2461, 0.2499, 0.2485, 0.2470, 
+                                     0.2455, 0.2439, 0.2395, 0.2348,
+                                     0.2275, 0.2198, 0.2147, 0.2007, 
+                                     0.1889, 0.1849, 0.1777, 0.1668, 
+                                     0.1586, 0.1426, 0.1234, 0.0933};
                                       
 
    G4double reflectivityOpSurfaceGlassSi[ENTRIES] =  // 0% reflection
