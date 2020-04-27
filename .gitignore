@@ -6,6 +6,7 @@ Run/fastsim_validation
 Run/shower_validation
 Run/hepmc_validation
 Run/physics_validation
+Run/final_validation
 */.ipynb_checkpoints
 *.png
 *.pyc
