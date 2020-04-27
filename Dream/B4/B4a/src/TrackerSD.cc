@@ -81,7 +81,7 @@ G4bool TrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
       
       // kill track and secondaries
       aTrack->SetTrackStatus(fKillTrackAndSecondaries);
-    } 
-    return false;
+      return true;
+    } else return false;
   } else return false;
 }
