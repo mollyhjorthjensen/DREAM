@@ -1,6 +1,7 @@
 Dream/build
 *.root
 *.out
+Run/original_validation
 Run/sensitive_validation
 Run/fastsim_validation
 Run/shower_validation
