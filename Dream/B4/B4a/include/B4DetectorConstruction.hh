@@ -56,6 +56,8 @@ class B4DetectorConstruction : public G4VUserDetectorConstruction
   
     static G4ThreadLocal G4GlobalMagFieldMessenger*  fMagFieldMessenger;  ///< magnetic field messenger
      
+    G4int fNofModules;
+    G4int fNofFibers;
     G4String fAbsMateName;
     G4int fVoxelsAlongY;
     

@@ -73,7 +73,8 @@ G4GlobalMagFieldMessenger* B4DetectorConstruction::fMagFieldMessenger = 0;
 
 B4DetectorConstruction::B4DetectorConstruction()
  : G4VUserDetectorConstruction(),
-  //  modulePV(0),
+   fNofModules(1),
+   fNofFibers(8),
    fAbsMateName(""),
    fVoxelsAlongY(-1),
    fCheckOverlaps(true)
@@ -129,11 +130,12 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   // Geometry parameters of world, module, fibers, SiPM
 
   // Geometry parameters of the module
-  G4int Nofmodules = 71; //the actual number of modules is Nofmodules^2, choose 3,5,7,9
-  G4int NofFibers = 32; // 32 of each type
-  G4int NofScinFibers = NofFibers/2;
-  G4int NofCherFibers = NofFibers/2;
-  G4int NofFibersrow = NofFibers/4;
+  G4int Nofmodules = fNofModules; //71 the actual number of modules is Nofmodules^2, choose 3,5,7,9
+  // G4int NofFibers = 32; // 32 of each type
+  // G4int NofScinFibers = NofFibers/2;
+  // G4int NofCherFibers = NofFibers/2;
+  // G4int NofFibersrow = NofFibers/4;
+  G4int NofFibersrow = fNofFibers;
   fVoxelsAlongY = Nofmodules * NofFibersrow;
   G4int NofFiberscolumn = NofFibersrow;
   G4double moduleZ = 112.*cm;
@@ -608,7 +610,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
         vec_m.setY(m_y);
         vec_m.setZ(0.);
         
-        copynumbermodule = (1+row)+(column*Nofmodules);
+        copynumbermodule = row+column*Nofmodules;
 
         physi_moduleequipped[row][column] = new G4PVPlacement(0,
                                                         vec_m,              
@@ -693,8 +695,11 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   // Here I place and rotate the entire calorimeter
 
   G4RotationMatrix rotm  = G4RotationMatrix();
-  rotm.rotateY(1.25*deg);  // Set the rotation angles //0.75
-  rotm.rotateX(1.0*deg);  //0.75
+  // rotm.rotateY(1.25*deg);  // Set the rotation angles //0.75
+  // rotm.rotateX(1.0*deg);  //0.75
+  rotm.rotateY(0.*deg);  // Set the rotation angles //0.75
+  rotm.rotateX(0.*deg);  //0.75
+  rotm.rotateZ(0.*deg);
   G4ThreeVector position;
   position.setX(0.);
   position.setY(0.);
@@ -1206,12 +1211,12 @@ void B4DetectorConstruction::ConstructSDandField()
   SiPMfilter->add("opticalphoton");
   SiPMfilter->SetKineticEnergy(elow, ehigh);
 
-  auto S_SiPMsd = new SiPMsd("S_SiPMsd", "S_HitsCollection", 71, 8);
+  auto S_SiPMsd = new SiPMsd("S_SiPMsd", "S_HitsCollection", fNofModules, fNofFibers);
   S_SiPMsd->SetFilter(SiPMfilter);
   sdMan->AddNewDetector(S_SiPMsd);
   SetSensitiveDetector("S_Si", S_SiPMsd, true);
 
-  auto C_SiPMsd = new SiPMsd("C_SiPMsd", "C_HitsCollection", 71, 8);
+  auto C_SiPMsd = new SiPMsd("C_SiPMsd", "C_HitsCollection", fNofModules, fNofFibers);
   C_SiPMsd->SetFilter(SiPMfilter);
   sdMan->AddNewDetector(C_SiPMsd);
   SetSensitiveDetector("C_Si", C_SiPMsd, true);
