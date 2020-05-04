@@ -73,7 +73,7 @@ G4GlobalMagFieldMessenger* B4DetectorConstruction::fMagFieldMessenger = 0;
 
 B4DetectorConstruction::B4DetectorConstruction()
  : G4VUserDetectorConstruction(),
-   fNofModules(1),
+   fNofModules(71), // 1 or 71
    fNofFibers(8),
    fAbsMateName(""),
    fVoxelsAlongY(-1),
@@ -130,15 +130,11 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   // Geometry parameters of world, module, fibers, SiPM
 
   // Geometry parameters of the module
-  G4int Nofmodules = fNofModules; //71 the actual number of modules is Nofmodules^2, choose 3,5,7,9
-  // G4int NofFibers = 32; // 32 of each type
-  // G4int NofScinFibers = NofFibers/2;
-  // G4int NofCherFibers = NofFibers/2;
-  // G4int NofFibersrow = NofFibers/4;
+  G4int Nofmodules = fNofModules; // the actual number of modules is Nofmodules^2, choose 3,5,7,9
   G4int NofFibersrow = fNofFibers;
   fVoxelsAlongY = Nofmodules * NofFibersrow;
   G4int NofFiberscolumn = NofFibersrow;
-  G4double moduleZ = 112.*cm;
+  G4double moduleZ = 2.*m; // 112.*cm if Brass or 2.*m if G4_Pb
   G4double moduleX = 12.*mm; 
   G4double moduleY = moduleX;
 
@@ -191,7 +187,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
   // Get materials for vacuum, absorber, scintillating and cherenkov fibers, SiPM
   G4Material* defaultMaterial = G4Material::GetMaterial("G4_Galactic"); // G4_AIR or G4_Galactic 
-  G4Material* absorberMaterial = G4Material::GetMaterial("Brass");      // Brass or G4_Pb
+  G4Material* absorberMaterial = G4Material::GetMaterial("G4_Pb");      // Brass or G4_Pb
   fAbsMateName = absorberMaterial->GetName();
   G4Material* ScinMaterial = G4Material::GetMaterial("G4_POLYSTYRENE");
   G4Material* CherMaterial = G4Material::GetMaterial("G4_PLEXIGLASS");
@@ -695,10 +691,10 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   // Here I place and rotate the entire calorimeter
 
   G4RotationMatrix rotm  = G4RotationMatrix();
-  // rotm.rotateY(1.25*deg);  // Set the rotation angles //0.75
-  // rotm.rotateX(1.0*deg);  //0.75
-  rotm.rotateY(0.*deg);  // Set the rotation angles //0.75
-  rotm.rotateX(0.*deg);  //0.75
+  rotm.rotateY(1.25*deg);  // Set the rotation angles //0.75
+  rotm.rotateX(1.0*deg);  //0.75
+  // rotm.rotateY(0.*deg);  // Set the rotation angles //0.75
+  // rotm.rotateX(0.*deg);  //0.75
   rotm.rotateZ(0.*deg);
   G4ThreeVector position;
   position.setX(0.);
