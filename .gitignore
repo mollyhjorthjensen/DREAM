@@ -1,6 +1,7 @@
 Dream/build
 *.root
 *.out
+*.err
 Run/original_validation
 Run/sensitive_validation
 Run/fastsim_validation
@@ -11,4 +12,6 @@ Run/final_validation
 */.ipynb_checkpoints
 *.png
 *.pyc
+*.o
+*.exe
 .vscode
