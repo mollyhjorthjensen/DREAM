@@ -43,7 +43,7 @@ using namespace std;
 using namespace Pythia8;
 using namespace Tauolapp;
 
-int NumberOfEvents = 10; //75e3;
+int NumberOfEvents = 20;
 
 int main(int argc,char **argv)
 {
