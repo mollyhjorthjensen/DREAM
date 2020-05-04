@@ -9,6 +9,7 @@ Run/shower_validation
 Run/hepmc_validation
 Run/physics_validation
 Run/final_validation
+Run/final_run
 */.ipynb_checkpoints
 *.png
 *.pyc
