@@ -19,18 +19,11 @@ def _int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 def serialize_example(feature0, feature2):
-# def serialize_example(feature0, feature1, feature2, feature3, feature4):
     """Creates a tf.Example message ready to be written to a file."""
     # Create a dictionary mapping the feature name to the tf.Example-compatible data type.
     feature = {
         'eventId': _int64_feature(feature0),
-        # 'showerId': _bytes_feature(feature1),
         'image': _bytes_feature(feature2),
-        # 'label': _bytes_feature(feature3),
-        # 'energy': _bytes_feature(feature4),
-        # 'height': _int64_feature(height),
-        # 'width': _int64_feature(width),
-        # 'depth': _int64_feature(depth),
     }
     # Create a Features message using tf.train.Example.
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -47,8 +40,8 @@ def get_image(t):
     Sj = getNj(t.VecIndexScnt, t.VoxelsAlongY)
     Ci = getNi(t.VecIndexCkov, t.VoxelsAlongY)
     Cj = getNj(t.VecIndexCkov, t.VoxelsAlongY)
-    Sval = np.array(t.VecSignalScnt)
-    Cval = np.array(t.VecSignalCkov)
+    Sval = np.array(t.VecSignalScnt_cal)
+    Cval = np.array(t.VecSignalCkov_cal)
     index_0 = np.append(Si, Ci).reshape((-1, 1)).astype(np.int64)
     index_1 = np.append(Sj, Cj).reshape((-1, 1)).astype(np.int64)
     index_2 = np.append(np.zeros_like(Si), np.ones_like(Ci)).reshape((-1, 1)).astype(np.int64)
@@ -58,22 +51,6 @@ def get_image(t):
     sp = tf.SparseTensor(indices, values, dense_shape=[height, width, 2])
     sp = tf.sparse.reorder(sp)
     return tf.io.serialize_sparse(sp)
-    
-def get_target(t):
-    index_0 = np.array(t.CoMi).reshape((-1, 1))
-    index_1 = np.array(t.CoMj).reshape((-1, 1))
-    index_2 = np.zeros_like(index_0)
-    indices = np.hstack((index_0, index_1, index_2))
-    lst = []
-    showerId = np.array(t.showerId_filtered).astype(np.float32)
-    label = np.array(t.label_filtered).astype(np.float32)
-    energy = np.array(t.showerE_filtered)
-    energy = energy.astype(np.float32)
-    for values in [showerId, label, energy]:
-        sp = tf.SparseTensor(indices, values, dense_shape=[height, width, 1])
-        sp = tf.sparse.reorder(sp)
-        lst += [tf.io.serialize_sparse(sp)]
-    return lst
 
 fileName = sys.argv[1]
 treeName = "B4"
@@ -82,8 +59,7 @@ assert(len(sys.argv) == 2)
 f = ROOT.TFile.Open(fileName, "read")
 t = f.Get(treeName)
 
-print(tf.__version__)
-assert tf.__version__ == "2.1.0"
+assert tf.__version__ == "2.2.0-rc1"
 
 # Write the tf.Example observations to the file
 filename = treeName + ".tfrecord"
@@ -94,7 +70,5 @@ with tf.io.TFRecordWriter(filename, options="GZIP") as writer:
         feature0 = t.GetEntryNumber(i)
         print(feature0)
         feature2 = get_image(t)
-        # feature1, feature3, feature4 = get_target(t)
-        # example = serialize_example(feature0, feature1, feature2, feature3, feature4)
         example = serialize_example(feature0, feature2)
         writer.write(example)
