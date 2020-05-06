@@ -16,4 +16,5 @@ Run/final_run
 *.o
 *.exe
 *.tfrecord
+*.npy
 .vscode
