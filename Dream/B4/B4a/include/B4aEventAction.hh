@@ -52,7 +52,8 @@ class B4aEventAction : public G4UserEventAction
     std::vector<G4int>& GetVecShowerPDG() { return fVecShowerPDG; }
     std::vector<G4double>& GetVecShowerCharge() { return fVecShowerCharge; }
     std::vector<G4double>& GetVecShowerPosition() { return fVecShowerPosition; }
-    std::vector<G4double>& GetVecShower4Momentum() { return fVecShower4Momentum; }
+    std::vector<G4double>& GetVecShowerEnergy() { return fVecShowerEnergy; }
+    std::vector<G4double>& GetVecShowerMomentum() { return fVecShowerMomentum; }
     std::vector<G4double>& GetVecShowerCkovCoMi() { return fVecShowerCoMi.at(kCkov); }
     std::vector<G4double>& GetVecShowerCkovCoMj() { return fVecShowerCoMj.at(kCkov); }
     std::vector<G4double>& GetVecShowerScntCoMi() { return fVecShowerCoMi.at(kScnt); }
@@ -81,7 +82,8 @@ class B4aEventAction : public G4UserEventAction
     std::vector<G4int> fVecShowerPDG;
     std::vector<G4double> fVecShowerCharge;
     std::vector<G4double> fVecShowerPosition;
-    std::vector<G4double> fVecShower4Momentum;
+    std::vector<G4double> fVecShowerEnergy;
+    std::vector<G4double> fVecShowerMomentum;
     std::array<std::vector<G4double>, kNProc> fVecShowerCoMi;
     std::array<std::vector<G4double>, kNProc> fVecShowerCoMj;
     std::array<std::vector<G4int>, kNProc> fVecIndex;   ///< Scintillating fibre p.e.

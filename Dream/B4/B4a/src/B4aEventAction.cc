@@ -75,7 +75,8 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
   fVecShowerPDG.clear();
   fVecShowerCharge.clear();
   fVecShowerPosition.clear();
-  fVecShower4Momentum.clear();
+  fVecShowerEnergy.clear();
+  fVecShowerMomentum.clear();
   fVecShowerCoMi.at(kCkov).clear();
   fVecShowerCoMi.at(kScnt).clear();
   fVecShowerCoMj.at(kCkov).clear();
@@ -239,11 +240,11 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
     fVecShowerPosition.push_back(position.x());
     fVecShowerPosition.push_back(position.y());
     fVecShowerPosition.push_back(position.z());
-    fVecShower4Momentum.push_back(hit->GetTotalEnergy());
+    fVecShowerEnergy.push_back(hit->GetTotalEnergy());
     totalShowerEnergy += hit->GetTotalEnergy();
-    fVecShower4Momentum.push_back(momentum.x());
-    fVecShower4Momentum.push_back(momentum.y());
-    fVecShower4Momentum.push_back(momentum.z());
+    fVecShowerMomentum.push_back(momentum.x());
+    fVecShowerMomentum.push_back(momentum.y());
+    fVecShowerMomentum.push_back(momentum.z());
 
     for (int j = 0; j < kNProc; ++j) {
       // get hits collections ID
