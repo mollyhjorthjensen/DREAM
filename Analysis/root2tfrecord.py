@@ -67,7 +67,7 @@ nentries = t.GetEntries()
 with tf.io.TFRecordWriter(filename, options="GZIP") as writer:
     for i in range(nentries):
         t.GetEntry(i)
-        feature0 = t.GetEntryNumber(i)
+        feature0 = t.eventId
         print(feature0)
         feature2 = get_image(t)
         example = serialize_example(feature0, feature2)
