@@ -18,8 +18,8 @@ d = d.Filter("(Sum(VecSignalScnt) > 0) || (Sum(VecSignalCkov) > 0)", "at least o
 
 # define new columns
 d = d.Define("eventId", "rdfentry_")
-d = d.Define("VecSignalScnt_corr", "VecSignalScnt/(VecSignalScnt-LateralLeakage)")
-d = d.Define("VecSignalCkov_corr", "VecSignalCkov/(VecSignalCkov-LateralLeakage)")
+d = d.Define("VecSignalScnt_corr", "VecSignalScnt*PrimaryEnergy/(PrimaryEnergy-LateralLeakage)")
+d = d.Define("VecSignalCkov_corr", "VecSignalCkov*PrimaryEnergy/(PrimaryEnergy-LateralLeakage)")
 d = d.Define("VecSignalScnt_cal", f"VecSignalScnt_corr*{cal['Scnt']}")
 d = d.Define("VecSignalCkov_cal", f"VecSignalCkov_corr*{cal['Ckov']}")
 d = d.Define("Ssum", "Sum(VecSignalScnt_cal)")
