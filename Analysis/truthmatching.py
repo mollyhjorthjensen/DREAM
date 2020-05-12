@@ -37,5 +37,19 @@ print(pdf_cluster_new.head())
 
 
 pdf_final = pdf_true.merge(pdf_cluster_new, how='outer', on=['eventId', 'showerId'])
+pdf_final['showerIdBool'] = ~pdf_final.showerId.isna()
+pdf_final['clusterIdBool'] = ~pdf_final.clusterId.isna()
+
+pdf_final = pdf_final.loc[(pdf_final.PrimaryEnergy > 350) | pdf_final.PrimaryEnergy.isna()]
+confusion_matrix = pd.crosstab(pdf_final.showerIdBool, pdf_final.clusterIdBool, rownames=['Actual'], colnames=['Predicted'])
+print(confusion_matrix)
+
+import matplotlib.pyplot as plt
+# pdf_final['dist_thresh'] = pdf_final.apply(lambda x: np.sqrt(x.S_rad_mean**2 + 1**2))
+pdf_final['dist_thresh'] = pdf_final["S_rad_mean"]**2
+pdf_final['dist_thresh'] = np.sqrt(pdf_final.dist_thresh)
+pdf_final['dist'] = pdf_final.apply(lambda x: np.sqrt((x.true_comi/2-x.cluster_comi)**2+(x.true_comj/2-x.cluster_comj)**2) , axis=1)
+pdf_final['dist'].hist(bins=40)
+plt.savefig('distance.png')
 
 print(pdf_final.head())
