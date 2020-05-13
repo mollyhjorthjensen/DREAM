@@ -12,7 +12,7 @@ pdf_cluster = pd.read_csv('clustering.csv')
 pdf_true = pdf_true[pdf_true.IsShower == 1]
 
 # convert index to column
-pdf_cluster['clusterId'] = pdf_cluster.index
+pdf_cluster['clusterId'] = pdf_cluster.index.astype(int)
 
 pdf = pdf_true.merge(pdf_cluster, how='outer', on=['eventId'])
 
@@ -43,9 +43,7 @@ pdf_final['IsCharged'] = pdf_final.VecShowerCharge.abs() > 0.
 
 def distance2charged(x):
 	df = x.loc[x.IsCharged]
-	if df.empty:
-		print("dataframe empty")
-	x['dist2charge'] = x.apply(lambda x: np.nan if df.empty else np.sqrt((df.cluster_comi-x.cluster_comi)**2+(df.cluster_comj-x.cluster_comj)**2), axis=1)
+	x['dist2charge'] = x.apply(lambda x: (568/2)*np.sqrt(2) if df.empty else np.sqrt((df.cluster_comi-x.cluster_comi)**2+(df.cluster_comj-x.cluster_comj)**2), axis=1)
 	return x
 
 grouped_charged = pdf_final[~pdf_final.clusterId.isna()].groupby('eventId').apply(distance2charged)
@@ -62,17 +60,19 @@ print(pdf_final.head())
 confusion_matrix = pd.crosstab(pdf_final.showerIdBool, pdf_final.clusterIdBool, rownames=['Actual'], colnames=['Predicted'])
 print(confusion_matrix)
 
-counts = pdf_final[pdf_final.showerIdBool & pdf_final.clusterIdBool].PrimaryDecayMode.value_counts()
-print("Decay mode counts:")
-print(counts)
+# get dataframe when there is both a shower and cluster
+pdf_ml = pdf_final[pdf_final.showerIdBool & pdf_final.clusterIdBool]
+print(pdf_ml.PrimaryDecayMode.value_counts())
+print(pdf_ml.VecShowerPDG.value_counts())
 
-print(pdf_final.VecShowerPDG.value_counts())
+pdf_ml['label'] = pdf_ml.VecShowerPDG.map({11: 1, 13: 2, 22: 3, -211: 4})
+pdf_ml['CoverS'] = pdf_ml.apply(lambda x: 0. if x.S_sum == 0. else x.C_sum / x.S_sum, axis=1)
 
-pdf_final['label'] = pdf_final.VecShowerPDG.map({np.nan: 0, 11: 1, 13: 2, 22: 3, -211: 4})
+print(pdf_ml.label.value_counts())
 
-print(pdf_final.label.value_counts())
-
-pdf_ml = pdf_final[~pdf_final.clusterId.isna()].filter(items=['eventId', 'clusterId', 'S_sum', 'S_rad_mean', 'S_hot', 'C_sum', 'C_rad_mean', 'C_hot', 'dist2charge', 'label'])
-pdf_ml['CoverS'] = pdf_ml.apply(lambda x: x.C_sum / x.S_sum, axis=1)
+pdf_ml = pdf_ml.filter(items=['eventId', 'clusterId', 'PrimaryDecayMode', 'VecShowerEnergy', 'S_sum', 'S_rad_mean', 'S_hot', 'C_sum', 'C_rad_mean', 'C_hot', 'dist2charge', 'label'])
+pdf_ml.clusterId = pdf_ml.clusterId.astype(int)
+pdf_ml.PrimaryDecayMode = pdf_ml.PrimaryDecayMode.astype(int)
 
 print(pdf_ml)
+pdf_ml.to_csv("data.csv", index=False)
