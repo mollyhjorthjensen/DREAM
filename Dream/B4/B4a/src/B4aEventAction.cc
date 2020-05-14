@@ -177,7 +177,7 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   G4PrimaryParticle *primary = event->GetPrimaryVertex()->GetPrimary();
   G4int primaryPDG = primary->GetPDGcode();
   G4double primaryEnergy = primary->GetTotalEnergy();
-  G4int primaryDecayMode = 0;
+  G4int primaryDecayMode = -1;
   if (fUseHepMC) {
     G4PrimaryVertex *vrtx;
     std::unordered_set<int> finalStates;
@@ -198,16 +198,16 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
     std::unordered_set pionMode = {-211, 16};
     std::unordered_set rhoORa1Mode = {-211, 16, 111};
     if (finalStates == electronMode) {
-      primaryDecayMode = 1;
+      primaryDecayMode = 0;
     } else if (finalStates == muonMode) {
-      primaryDecayMode = 2;
+      primaryDecayMode = 1;
     } else if (finalStates == pionMode) {
-      primaryDecayMode = 3;
+      primaryDecayMode = 2;
     } else if (finalStates == rhoORa1Mode) {
       if (nOfFinalStates == 3) {  // rho mode
-        primaryDecayMode = 4;
+        primaryDecayMode = 3;
       } else if (nOfFinalStates == 4) {  // a1 mode
-        primaryDecayMode = 5;
+        primaryDecayMode = 4;
       }
     }
   }
