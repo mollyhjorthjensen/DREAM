@@ -38,15 +38,17 @@
 #include "TMath.h"
 #include <limits>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 using namespace Pythia8;
 using namespace Tauolapp;
 
-int NumberOfEvents = 1000;
-
 int main(int argc,char **argv)
 {
+  assert(argc == 2);
+  int NumberOfEvents = atoi(argv[1]);
+
   TFile hfile("htree.root","RECREATE","Demo ROOT file with histograms & trees");
   TTree tree("T","An example of ROOT tree with a few branches");
   typedef struct {Int_t helPlus, helMinus; Double_t EWwt, EWwt0, theta;} EVENT;

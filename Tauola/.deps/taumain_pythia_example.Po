@@ -308,7 +308,9 @@ taumain_pythia_example.o: taumain_pythia_example.cxx \
  /cvmfs/sft.cern.ch/lcg/releases/ROOT/5.34.24-64287/x86_64-slc6-gcc49-opt/include/TMath.h \
  /cvmfs/sft.cern.ch/lcg/releases/ROOT/5.34.24-64287/x86_64-slc6-gcc49-opt/include/TError.h \
  /cvmfs/sft.cern.ch/lcg/contrib/gcc/4.9.3/x86_64-slc6/include/c++/4.9.3/limits \
- /cvmfs/sft.cern.ch/lcg/contrib/gcc/4.9/x86_64-slc6/lib/gcc/x86_64-unknown-linux-gnu/4.9.3/include/float.h
+ /cvmfs/sft.cern.ch/lcg/contrib/gcc/4.9/x86_64-slc6/lib/gcc/x86_64-unknown-linux-gnu/4.9.3/include/float.h \
+ /cvmfs/sft.cern.ch/lcg/contrib/gcc/4.9.3/x86_64-slc6/include/c++/4.9.3/cassert \
+ /usr/include/assert.h
 
 /usr/include/stdc-predef.h:
 
@@ -979,3 +981,7 @@ tauola_print_parameters.h:
 /cvmfs/sft.cern.ch/lcg/contrib/gcc/4.9.3/x86_64-slc6/include/c++/4.9.3/limits:
 
 /cvmfs/sft.cern.ch/lcg/contrib/gcc/4.9/x86_64-slc6/lib/gcc/x86_64-unknown-linux-gnu/4.9.3/include/float.h:
+
+/cvmfs/sft.cern.ch/lcg/contrib/gcc/4.9.3/x86_64-slc6/include/c++/4.9.3/cassert:
+
+/usr/include/assert.h:
