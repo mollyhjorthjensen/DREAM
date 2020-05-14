@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-energy_thresh = 350
-
 pdf_true = pd.read_csv('truth.csv')
 pdf_cluster = pd.read_csv('clustering.csv')
 
@@ -28,7 +26,7 @@ def matching(x):
 		x = x[(x.showerId != df.showerId) & (x.clusterId != df.clusterId)]
 	return lst
 
-grouped_matching = pdf[~pdf.clusterId.isna()].groupby('eventId').apply(matching)
+grouped_matching = pdf[(~pdf.showerId.isna()) & (~pdf.clusterId.isna())].groupby('eventId').apply(matching)
 
 flat_list = [item for sublist in grouped_matching for item in sublist]
 df_new = pd.DataFrame(flat_list, columns=['clusterId', 'showerId', 'dist'])
@@ -39,7 +37,6 @@ pdf_final['rad_mean'] = pdf_final.apply(lambda x: (x.S_sum*x.S_rad_mean+x.C_sum*
 pdf_final['dist_thresh'] = pdf_final.apply(lambda x: np.sqrt(x.rad_mean**2 + 1**2), axis=1)
 pdf_final['showerIdBool'] = ~pdf_final.showerId.isna()
 pdf_final['clusterIdBool'] = ~pdf_final.clusterId.isna() & ((pdf_final.dist < pdf_final.dist_thresh) | pdf_final.dist.isna())
-pdf_final['IsCharged'] = pdf_final.VecShowerCharge.abs() > 0.
 
 def distance2charged(x):
 	df = x.loc[x.IsCharged]
@@ -49,11 +46,6 @@ def distance2charged(x):
 grouped_charged = pdf_final[~pdf_final.clusterId.isna()].groupby('eventId').apply(distance2charged)
 grouped_charged = grouped_charged.filter(items=['eventId', 'clusterId', 'dist2charge'])
 pdf_final = pdf_final.merge(grouped_charged, how='left', on=['eventId', 'clusterId'])
-
-# filtering particles by energy threshold
-pdf_final = pdf_final.loc[(pdf_final.PrimaryEnergy > energy_thresh) | pdf_final.PrimaryEnergy.isna()]
-# filtering off neutrinos
-pdf_final = pdf_final.loc[(pdf_final.VecShowerPDG.abs() != 12) & (pdf_final.VecShowerPDG.abs() != 14) & (pdf_final.VecShowerPDG.abs() != 16)]
 
 print(pdf_final.head())
 
@@ -65,7 +57,7 @@ pdf_ml = pdf_final[pdf_final.showerIdBool & pdf_final.clusterIdBool]
 print(pdf_ml.PrimaryDecayMode.value_counts())
 print(pdf_ml.VecShowerPDG.value_counts())
 
-pdf_ml['label'] = pdf_ml.VecShowerPDG.map({11: 1, 13: 2, 22: 3, -211: 4})
+pdf_ml['label'] = pdf_ml.VecShowerPDG.map({11: 0, 13: 1, 22: 2, -211: 3})
 pdf_ml['CoverS'] = pdf_ml.apply(lambda x: 0. if x.S_sum == 0. else x.C_sum / x.S_sum, axis=1)
 
 print(pdf_ml.label.value_counts())
