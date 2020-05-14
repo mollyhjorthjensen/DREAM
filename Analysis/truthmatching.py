@@ -62,7 +62,7 @@ pdf_ml['CoverS'] = pdf_ml.apply(lambda x: 0. if x.S_sum == 0. else x.C_sum / x.S
 
 print(pdf_ml.label.value_counts())
 
-pdf_ml = pdf_ml.filter(items=['eventId', 'clusterId', 'PrimaryDecayMode', 'VecShowerEnergy', 'S_sum', 'S_rad_mean', 'S_hot', 'C_sum', 'C_rad_mean', 'C_hot', 'dist2charge', 'label'])
+pdf_ml = pdf_ml.filter(items=['eventId', 'clusterId', 'PrimaryDecayMode', 'VecShowerEnergy', 'S_sum', 'C_sum', 'S_rad_mean', 'C_rad_mean', 'S_hot', 'C_hot', 'CoverS', 'dist2charge', 'label'])
 pdf_ml.clusterId = pdf_ml.clusterId.astype(int)
 pdf_ml.PrimaryDecayMode = pdf_ml.PrimaryDecayMode.astype(int)
 
