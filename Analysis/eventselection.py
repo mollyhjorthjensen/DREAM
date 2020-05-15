@@ -4,7 +4,7 @@ import numpy as np
 import ROOT
 import pandas as pd
 
-energy_thresh = 350.
+energy_thresh = 200.
 
 fileName = sys.argv[1]
 treeName = "B4"
@@ -27,7 +27,7 @@ RVec<int> is_neutrino(RVec<int> &VecShowerPDG) {
 ROOT.gInterpreter.Declare(is_neutrino_code)
 
 decay_mode_code = '''
-std::map<int,int> mode2num = {{1,1}, {2,1}, {3,1}, {4,3}, {5,5}};
+std::map<int,int> mode2num = {{0,1}, {1,1}, {2,1}, {3,3}, {4,5}};
 using namespace ROOT::VecOps;
 bool check_decay_mode(int &PrimaryDecayMode, RVec<int> &VecShowerPDG) {
 	return mode2num.at(PrimaryDecayMode) == VecShowerPDG.size();
