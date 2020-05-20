@@ -1,12 +1,16 @@
 import sys
+import os
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 
 fileName = sys.argv[1]
-assert(len(sys.argv) == 2)
+assert len(sys.argv) == 2
 
-signal = 'S'
+base = os.path.basename(fileName)
+base, ext = os.path.splitext(base)
+signal = base.split('_')[0]
+assert signal in ['S', 'C']
 
 # Create a description of the features.
 feature_description = {
@@ -24,14 +28,20 @@ def _parse_function(example_proto):
 
 filenames = [fileName]
 raw_dataset = tf.data.TFRecordDataset(filenames)
-raw_dataset
 
 parsed_dataset = raw_dataset.map(_parse_function)
 
-df = pd.DataFrame(columns=['eventId', signal+'_comi', signal+'_comj',
+df1 = pd.DataFrame(columns=['eventId', signal+'_comi', signal+'_comj',
 			   signal+'_sum', signal+'_rad_mean', signal+'_hot'])
-for parsed in parsed_dataset.take(10):
+for parsed in parsed_dataset:
 	eventId = parsed['eventId'].numpy()
 	d = {k: v.values.numpy() for k,v in parsed.items() if k != 'eventId'}
 	d['eventId'] = np.repeat(eventId, len(d[signal+'_comi']))
-	print(d)
+	df2 = pd.DataFrame(d)
+	df1 = df1.append(df2, ignore_index=True, sort=False)
+
+print(f"Dataframe shape : {df1.shape}")
+print(df1.head())
+
+path = os.path.dirname(fileName)
+df1.to_csv(os.path.join(path, base+".csv"), index=False)

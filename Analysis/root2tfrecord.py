@@ -1,8 +1,10 @@
 # see https://www.tensorflow.org/tutorials/load_data/tfrecord (Accessed 27 Nov 2019)
 import sys
+import os
 import ROOT
 import numpy as np
 import tensorflow as tf
+assert tf.__version__ == "2.2.0-rc1"
 
 def _bytes_feature(value):
     """Returns a bytes_list from a string / byte."""
@@ -53,18 +55,15 @@ def get_image(t):
     return tf.io.serialize_sparse(sp)
 
 fileName = sys.argv[1]
-treeName = "B4"
 assert(len(sys.argv) == 2)
  
 f = ROOT.TFile.Open(fileName, "read")
-t = f.Get(treeName)
-
-assert tf.__version__ == "2.2.0-rc1"
+t = f.Get("B4")
 
 # Write the tf.Example observations to the file
-filename = treeName + ".tfrecord"
+base, ext = os.path.splitext(fileName)
 nentries = t.GetEntries()
-with tf.io.TFRecordWriter(filename, options="GZIP") as writer:
+with tf.io.TFRecordWriter(base+".tfrecord", options="GZIP") as writer:
     for i in range(nentries):
         t.GetEntry(i)
         feature0 = t.eventId

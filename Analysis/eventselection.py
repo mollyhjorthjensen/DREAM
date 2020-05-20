@@ -7,10 +7,9 @@ import pandas as pd
 energy_thresh = 200.
 
 fileName = sys.argv[1]
-treeName = "B4"
-assert(len(sys.argv) == 2)
- 
-d = ROOT.ROOT.RDataFrame(treeName, fileName)
+assert len(sys.argv) == 2
+
+d = ROOT.ROOT.RDataFrame("B4", fileName)
 
 cal = np.load("calibration.pkl.npy", allow_pickle=True).item()
 print(cal)
@@ -35,6 +34,7 @@ bool check_decay_mode(int &PrimaryDecayMode, RVec<int> &VecShowerPDG) {
 '''
 ROOT.gInterpreter.Declare(decay_mode_code)
 
+d = d.Range(10)
 d = d.Define("IsNeutrino", "is_neutrino(VecShowerPDG)")
 d = d.Define("HasEntered", "(VecShowerScntCoMi != -1) || (VecShowerScntCoMj != -1)")
 d = d.Define("IsShower", "(HasEntered == 1) && (IsNeutrino == 0)")
@@ -52,21 +52,20 @@ d = d.Define("VecSignalScnt_cal", f"VecSignalScnt_corr*{cal['Scnt']}")
 d = d.Define("VecSignalCkov_cal", f"VecSignalCkov_corr*{cal['Ckov']}")
 d = d.Define("Ssum", "Sum(VecSignalScnt_cal)")
 d = d.Define("Csum", "Sum(VecSignalCkov_cal)")
-d = d.Define("true_comi", "(Ssum*VecShowerScntCoMi+Csum*VecShowerCkovCoMi)/(Ssum+Csum)")
-d = d.Define("true_comj", "(Ssum*VecShowerScntCoMj+Csum*VecShowerCkovCoMj)/(Ssum+Csum)")
 
 print('All stats:')
 allCutsReport = d.Report()
 allCutsReport.Print()
 
 # save root file to be converted to tfrecord
-base, ext = os.path.splitext(fileName)
-d.Snapshot(treeName, base + "_filtered" + ext)
+path = os.path.dirname(fileName)
+d.Snapshot(treeName, os.path.join(path, "filtered.root"))
 
 # save flattened ntuple to pandas dataframe
 eventCols = ['eventId', 'PrimaryDecayMode']
 showerCols = ['VecShowerPDG', 'IsCharged', 'VecShowerEnergy',
-	      'IsShower', 'true_comi', 'true_comj']
+	      'IsShower', 'VecShowerScntCoMi', 'VecShowerScntCoMj',
+	      'VecShowerCkovCoMi', 'VecShowerCkovCoMj']
 cols = eventCols + showerCols
 npy = d.AsNumpy(columns=cols)
 cols = eventCols + ['showerId'] + showerCols
@@ -75,7 +74,8 @@ eventVars = zip(npy['eventId'], npy['PrimaryDecayMode'])
 showerId = 0
 for i, event in enumerate(eventVars):
 	showerVars = zip(npy['VecShowerPDG'][i], npy['IsCharged'][i], npy['VecShowerEnergy'][i],
-			 npy['IsShower'][i], npy['true_comi'][i], npy['true_comj'][i]) 
+			 npy['IsShower'][i], npy['VecShowerScntCoMi'][i], npy['VecShowerScntCoMj'][i],
+			 npy['VecShowerCkovCoMi'][i], npy['VecShowerCkovCoMj'][i]) 
 	for j, shower in enumerate(showerVars):
 		new = list(event) + [showerId] + list(shower)
 		pdfj = pd.DataFrame([new], columns=cols)
@@ -83,10 +83,12 @@ for i, event in enumerate(eventVars):
 		showerId += 1
 pdf.reset_index(drop=True, inplace=True)
 pdf.eventId = pdf.eventId.astype(int)
+
+# remove showers not entering calorimeter
 pdf = pdf[pdf.IsShower == 1]
 pdf.drop(['IsShower'], inplace=True, axis=1)
-print(pdf.head(20))
-print(pdf.shape)
 
-pdf.to_csv('truth.csv', index=False)
+print(f"Dataframe shape : {pdf.shape}")
+print(pdf.head())
 
+pdf.to_csv(os.path.join(path, 'truth.csv'), index=False)
