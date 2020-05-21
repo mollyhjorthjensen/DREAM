@@ -5,11 +5,12 @@ import ROOT
 import pandas as pd
 
 energy_thresh = 200.
+treeName = "B4"
 
 fileName = sys.argv[1]
 assert len(sys.argv) == 2
 
-d = ROOT.ROOT.RDataFrame("B4", fileName)
+d = ROOT.ROOT.RDataFrame(treeName, fileName)
 
 cal = np.load("calibration.pkl.npy", allow_pickle=True).item()
 print(cal)
