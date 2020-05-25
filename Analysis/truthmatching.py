@@ -3,6 +3,7 @@ import os
 import ROOT
 import pandas as pd
 import numpy as np
+from pandas_ml import ConfusionMatrix
 import matplotlib.pyplot as plt
 
 path = sys.argv[1]
@@ -50,6 +51,9 @@ pdf_final['clusterId'] = pdf_final.apply(lambda x: x.name if x.clusterIdBool els
 
 confusion_matrix = pd.crosstab(pdf_final.showerIdBool, pdf_final.clusterIdBool, rownames=['Actual'], colnames=['Predicted'])
 print(confusion_matrix)
+
+Confusion_Matrix = ConfusionMatrix(pdf_final.showerIdBool, pdf_final.clusterIdBool)
+Confusion_Matrix.print_stats()
 
 def weighted_comi(x):
 	if np.isnan(x.S_comi):
