@@ -30,30 +30,42 @@ pdf_true = pd.read_csv(os.path.join(path, 'truth.csv'))
 pdf_cluster = {}
 pdf_final = pdf_true.copy()
 for signal in ['S', 'C']:
+	# load cluster data
 	pdf_cluster[signal] = pd.read_csv(os.path.join(path, signal+'_cluster.csv'))
+	# make unique cluster id from index
+	pdf_cluster[signal].reset_index(drop=True, inplace=True)
 	pdf_cluster[signal]['clusterId'] = pdf_cluster[signal].index.astype(int)
+	# merge truth and cluster with an outer join to yield all possible combinations of truth and cluster
 	pdf_merged = pdf_true.merge(pdf_cluster[signal], how='outer', on=['eventId'])
+	# calculate distances between any truth-cluster pair 
 	pdf_merged = pdf_merged[(~pdf_merged.showerId.isna()) & (~pdf_merged.clusterId.isna())]
 	pdf_merged['dist'] = pdf_merged.apply(lambda x: euclidean_distance(x, signal), axis=1)
+	# match truth-cluster pairs by min(dist) in turn for each event
 	grouped_matched = pdf_merged.groupby('eventId').apply(matching)
+	# create dataframe from match
 	flatlist = [item for sublist in grouped_matched for item in sublist]
 	pdf_new = pd.DataFrame(flatlist, columns=['clusterId', 'showerId', signal+'_dist'])
+	# merge match and cluster with a left join to add unique shower id and dist 
 	pdf_cluster[signal] = pdf_cluster[signal].merge(pdf_new, how='left', on=['clusterId'])
 	pdf_cluster[signal].rename(columns={'clusterId': signal+'_clusterId'}, inplace=True)
+	# merge truth and cluster with an outer join now based on the matching  
 	pdf_final = pdf_final.merge(pdf_cluster[signal], how='outer', on=['eventId', 'showerId'])
 
 pdf_final['showerIdBool'] = ~pdf_final.showerId.isna()
-pdf_final['S_clusterIdBool'] = ~pdf_final.S_clusterId.isna() & ((pdf_final.S_dist < pdf_final.S_rad_mean) | pdf_final.S_dist.isna())
-pdf_final['C_clusterIdBool'] = ~pdf_final.C_clusterId.isna() & ((pdf_final.C_dist < pdf_final.C_rad_mean) | pdf_final.C_dist.isna())
+pdf_final['S_clusterIdBool'] = ~pdf_final.S_clusterId.isna() & (pdf_final.S_dist < pdf_final.S_rad_mean)
+pdf_final['C_clusterIdBool'] = ~pdf_final.C_clusterId.isna() & (pdf_final.C_dist < pdf_final.C_rad_mean)
 pdf_final['clusterIdBool'] = pdf_final.S_clusterIdBool | pdf_final.C_clusterIdBool
+# redefine clusterId
 pdf_final.reset_index(drop=True, inplace=True)
 pdf_final['clusterId'] = pdf_final.apply(lambda x: x.name if x.clusterIdBool else np.nan, axis=1)
 
 confusion_matrix = pd.crosstab(pdf_final.showerIdBool, pdf_final.clusterIdBool, rownames=['Actual'], colnames=['Predicted'])
 print(confusion_matrix)
+print(pdf_final.head())
 
 Confusion_Matrix = ConfusionMatrix(pdf_final.showerIdBool, pdf_final.clusterIdBool)
 Confusion_Matrix.print_stats()
+
 
 def weighted_comi(x):
 	if np.isnan(x.S_comi):
@@ -74,8 +86,7 @@ def weighted_comj(x):
 # remember there is only one charged track in any event
 def distance2charged(x):
 	df = x.loc[x.IsCharged]
-	a = (568/2)*np.sqrt(2)
-	x['dist2charge'] = x.apply(lambda x: a if df.empty else np.sqrt((df.comi-x.comi)**2+(df.comj-x.comj)**2), axis=1)
+	x['dist2charge'] = x.apply(lambda x: np.nan if df.empty else np.sqrt((df.comi-x.comi)**2+(df.comj-x.comj)**2), axis=1)
 	return x
 
 pdf_final['comi'] = pdf_final.apply(weighted_comi, axis=1)
@@ -92,8 +103,16 @@ pdf_ml = pdf_final[pdf_final.showerIdBool & pdf_final.clusterIdBool]
 print(pdf_ml.PrimaryDecayMode.value_counts())
 print(pdf_ml.VecShowerPDG.value_counts())
 
+pdf_ml['S_sum'] = pdf_ml.apply(lambda x: x.S_sum if x.S_clusterIdBool else np.nan, axis=1)
+pdf_ml['S_rad_mean'] = pdf_ml.apply(lambda x: x.S_rad_mean if x.S_clusterIdBool else np.nan, axis=1)
+pdf_ml['S_hot'] = pdf_ml.apply(lambda x: x.S_hot if x.S_clusterIdBool else np.nan, axis=1)
+
+pdf_ml['C_sum'] = pdf_final.apply(lambda x: x.C_sum if x.C_clusterIdBool else np.nan, axis=1)
+pdf_ml['C_rad_mean'] = pdf_final.apply(lambda x: x.C_rad_mean if x.C_clusterIdBool else np.nan, axis=1)
+pdf_ml['C_hot'] = pdf_final.apply(lambda x: x.C_hot if x.C_clusterIdBool else np.nan, axis=1)
+
 pdf_ml['label'] = pdf_ml.VecShowerPDG.map({11: 0, 13: 1, 22: 2, -211: 3})
-pdf_ml['CoverS'] = pdf_ml.apply(lambda x: 0. if x.S_sum == 0. else x.C_sum / x.S_sum, axis=1)
+pdf_ml['CoverS'] = pdf_ml.apply(lambda x: x.C_sum / x.S_sum, axis=1)
 
 print(pdf_ml.label.value_counts())
 
@@ -101,5 +120,6 @@ pdf_ml = pdf_ml.filter(items=['eventId', 'clusterId', 'PrimaryDecayMode', 'VecSh
 pdf_ml.clusterId = pdf_ml.clusterId.astype(int)
 pdf_ml.PrimaryDecayMode = pdf_ml.PrimaryDecayMode.astype(int)
 
+pdf_ml.replace([np.inf, -np.inf], np.nan) 
 print(pdf_ml)
 pdf_ml.to_csv(os.path.join(path, "data.csv"), index=False)
