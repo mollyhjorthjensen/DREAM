@@ -22,6 +22,7 @@ p1 = d.Profile1D(model, "cosTheta", "negHelMinus")
 p2 = p1.Clone("p2")
 p3 = p1.Clone("p3")
 
+print(f"Underflow : {p1.GetBinContent(0)}\t\tOverflow : {p1.GetBinContent(p1.GetNbinsX()+1)}")
 p1.Draw()
 
 p1.SetLineColor(ROOT.kBlack)
@@ -42,7 +43,7 @@ p1.GetYaxis().SetLabelSize(0.03)
 p1.GetYaxis().CenterTitle()
 p1.GetYaxis().SetTitleOffset(1.6)
 
-ROOT.gPad.SetTicks(1, 1)
+#ROOT.gPad.SetTicks(1, 1)
 
 p1.StatOverflows(ROOT.kTRUE)
 
@@ -91,8 +92,8 @@ listOfLines1 = stats1.GetListOfLines()
 listOfLines1.First().SetTextColor(ROOT.kBlack)
 #listOfLines1.AddFirst(myt1)
 stats1.SetTextColor(palette['blue'].GetNumber())
-stats1.SetX2NDC(0.885+0.05)
-stats1.SetY2NDC(0.88+0.05)
+stats1.SetX2NDC(0.89+0.05)
+stats1.SetY2NDC(0.885+0.05)
 stats1.SetX1NDC(stats1.GetX2NDC()-0.3)
 stats1.SetY1NDC(stats1.GetY2NDC()-0.16)
 stats1.SetTextSize(0.03)
