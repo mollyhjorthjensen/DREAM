@@ -51,7 +51,7 @@ stats1 = [None, None]
 legend = [None, None]
 mean = [None, None, None]
 model = [("", "", 100, 0.17, 0.21), ("", "", 100, 8.2, 10.2)]
-xlabel = ["Beam energy / scintillating p.e.", "Beam energy / Cerenkov p.e."]
+xlabel = ["E_{beam} / scintillating p.e.", "E_{beam} / #check{C}erenkov p.e."]
 for i in range(len(col)):
     c.cd(i+1)
     ROOT.gStyle.SetOptStat("e")  # "nemr ou"
