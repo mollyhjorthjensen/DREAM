@@ -35,7 +35,6 @@ bool check_decay_mode(int &PrimaryDecayMode, RVec<int> &VecShowerPDG) {
 '''
 ROOT.gInterpreter.Declare(decay_mode_code)
 
-d = d.Range(100)
 d = d.Define("IsNeutrino", "is_neutrino(VecShowerPDG)")
 d = d.Define("HasEntered", "(VecShowerScntCoMi != -1) || (VecShowerScntCoMj != -1)")
 d = d.Define("IsShower", "(HasEntered == 1) && (IsNeutrino == 0)")
