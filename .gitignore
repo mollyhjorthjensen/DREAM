@@ -3,6 +3,8 @@ Dream/build_module
 Dream/build_module.sh
 Dream/build_original
 Dream/build_original.sh
+Dream/build2
+Dream/build2.sh
 *.root
 *.out
 *.err
