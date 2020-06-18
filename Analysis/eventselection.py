@@ -12,6 +12,8 @@ assert len(sys.argv) == 2
 
 d = ROOT.ROOT.RDataFrame(treeName, fileName)
 
+d = d.Range(100)
+
 cal = np.load("calibration.pkl.npy", allow_pickle=True).item()
 print(cal)
 
