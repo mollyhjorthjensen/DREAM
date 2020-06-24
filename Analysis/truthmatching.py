@@ -17,10 +17,12 @@ def euclidean_distance(x, signal):
 	elif signal == 'C':
 		return np.sqrt((x.VecShowerCkovCoMi/2-x.C_comi)**2+(x.VecShowerCkovCoMj/2-x.C_comj)**2)
 
-def matching(x):
+def matching(x, signal):
 	lst = []
 	while not x.empty:
 		df = x.loc[x.dist.idxmin()]
+		# if (((signal == 'S') and (df.dist < np.sqrt(2)*df.S_rad_mean)) or 
+			# ((signal == 'C') and (df.dist < np.sqrt(2)*df.C_rad_mean))):
 		lst += [(df.clusterId.astype(int), df.showerId.astype(int), df.dist)]
 		x = x[(x.showerId != df.showerId) & (x.clusterId != df.clusterId)]
 	return lst
@@ -29,6 +31,7 @@ def matching(x):
 pdf_true = pd.read_csv(os.path.join(path, 'truth.csv'))
 pdf_cluster = {}
 pdf_final = pdf_true.copy()
+print("pdf_final.shape", pdf_final.shape)
 for signal in ['S', 'C']:
 	# load cluster data
 	pdf_cluster[signal] = pd.read_csv(os.path.join(path, signal+'_cluster.csv'))
@@ -41,7 +44,7 @@ for signal in ['S', 'C']:
 	pdf_merged = pdf_merged[(~pdf_merged.showerId.isna()) & (~pdf_merged.clusterId.isna())]
 	pdf_merged['dist'] = pdf_merged.apply(lambda x: euclidean_distance(x, signal), axis=1)
 	# match truth-cluster pairs by min(dist) in turn for each event
-	grouped_matched = pdf_merged.groupby('eventId').apply(matching)
+	grouped_matched = pdf_merged.groupby('eventId').apply(lambda x: matching(x, signal))
 	# create dataframe from match
 	flatlist = [item for sublist in grouped_matched for item in sublist]
 	pdf_new = pd.DataFrame(flatlist, columns=['clusterId', 'showerId', signal+'_dist'])
@@ -50,10 +53,11 @@ for signal in ['S', 'C']:
 	pdf_cluster[signal].rename(columns={'clusterId': signal+'_clusterId'}, inplace=True)
 	# merge truth and cluster with an outer join now based on the matching  
 	pdf_final = pdf_final.merge(pdf_cluster[signal], how='outer', on=['eventId', 'showerId'])
+	print(signal, "pdf_final.shape", pdf_final.shape, "pdf_signal.shape", pdf_cluster[signal].shape)
 
 pdf_final['showerIdBool'] = ~pdf_final.showerId.isna()
-pdf_final['S_clusterIdBool'] = ~pdf_final.S_clusterId.isna() & (pdf_final.S_dist < pdf_final.S_rad_mean)
-pdf_final['C_clusterIdBool'] = ~pdf_final.C_clusterId.isna() & (pdf_final.C_dist < pdf_final.C_rad_mean)
+pdf_final['S_clusterIdBool'] = ~pdf_final.S_clusterId.isna() & ((pdf_final.S_dist < np.sqrt(2)*pdf_final.S_rad_mean)) # | pdf_final.S_dist.isna())
+pdf_final['C_clusterIdBool'] = ~pdf_final.C_clusterId.isna() & ((pdf_final.C_dist < np.sqrt(2)*pdf_final.C_rad_mean)) # | pdf_final.C_dist.isna())
 pdf_final['clusterIdBool'] = pdf_final.S_clusterIdBool | pdf_final.C_clusterIdBool
 # redefine clusterId
 pdf_final.reset_index(drop=True, inplace=True)
