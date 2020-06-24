@@ -43,6 +43,7 @@
 #include <functional>
 #include <algorithm>
 #include <unordered_set>
+#include <iterator>
 
 #include "TrackerSD.hh"
 #include "TrackerHit.hh"
@@ -81,6 +82,8 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
   fVecShowerCoMi.at(kScnt).clear();
   fVecShowerCoMj.at(kCkov).clear();
   fVecShowerCoMj.at(kScnt).clear();
+  fVecShowerRad.at(kCkov).clear();
+  fVecShowerRad.at(kScnt).clear();
   fVecIndex.at(kCkov).clear();
   fVecIndex.at(kScnt).clear();
   fVecSignal.at(kCkov).clear();
@@ -148,7 +151,7 @@ std::tuple<std::vector<int>, std::vector<int>> B4aEventAction::GetVectors(SiPMhi
   return {keys, values};
 }
 
-std::tuple<G4double, G4double> B4aEventAction::GetCentreOfMass(SiPMhitsCollection *HC) const {
+std::tuple<G4double, G4double, G4double> B4aEventAction::GetCentreOfMass(SiPMhitsCollection *HC) const {
   auto [keys, values] = GetVectors(HC);
   std::vector<int> Ni;
   std::vector<int> Nj;
@@ -157,15 +160,33 @@ std::tuple<G4double, G4double> B4aEventAction::GetCentreOfMass(SiPMhitsCollectio
   std::transform(keys.begin(), keys.end(), std::back_inserter(Ni), std::bind2nd(std::divides<int>(), fVoxelsAlongY));
   std::transform(keys.begin(), keys.end(), std::back_inserter(Nj), std::bind2nd(std::modulus<int>(), fVoxelsAlongY));
   G4double sum = std::accumulate(values.begin(), values.end(), 0.);
-  G4double ri = std::inner_product(Ni.begin(), Ni.end(), values.begin(), 0.);
-  G4double rj = std::inner_product(Nj.begin(), Nj.end(), values.begin(), 0.);
+  G4double wNi = std::inner_product(Ni.begin(), Ni.end(), values.begin(), 0.);
+  G4double wNj = std::inner_product(Nj.begin(), Nj.end(), values.begin(), 0.);
   G4double CoMi = -1.;
   G4double CoMj = -1.;
+  G4double wrmean = -1.;
   if (sum != 0.) {
-    CoMi = ri / sum;
-    CoMj = rj / sum;
+    CoMi = wNi / sum;
+    CoMj = wNj / sum;
+
+    std::transform(Ni.begin(), Ni.end(), Ni.begin(), std::bind2nd(std::minus<double>(), CoMi)); 
+    std::transform(Nj.begin(), Nj.end(), Nj.begin(), std::bind2nd(std::minus<double>(), CoMj)); 
+    
+    std::vector<double> ri;
+    ri.reserve(keys.size());
+    std::transform(Ni.begin(), Ni.end(), Nj.begin(), std::back_inserter(ri),
+      [](double i, double j) -> double {return std::sqrt(std::pow(i, 2)+std::pow(j, 2));});
+
+    // std::copy(ri.begin(), ri.end(), std::ostream_iterator<double>(std::cout, " " ));
+
+    // auto lambda = [&](double a, double b){return a + b / ri.size(); };
+    // std::cout << std::accumulate(ri.begin(), ri.end(), 0.0, lambda) << std::endl;
+
+    G4double wri = std::inner_product(ri.begin(), ri.end(), values.begin(), 0.);
+    wrmean = wri / sum;
   }
-  return {CoMi, CoMj};
+
+  return {CoMi, CoMj, wrmean};
 }
 
 void B4aEventAction::EndOfEventAction(const G4Event* event)
@@ -254,9 +275,10 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
       auto HC = GetSiPMhitsCollection(HCID, event);
 
       // compute centre of mass
-      auto [CoMi, CoMj] = GetCentreOfMass(HC);
+      auto [CoMi, CoMj, wrmean] = GetCentreOfMass(HC);
       fVecShowerCoMi.at(j).push_back(CoMi);
       fVecShowerCoMj.at(j).push_back(CoMj);
+      fVecShowerRad.at(j).push_back(wrmean);
 
       // sum shower signals
       hcArray.at(j) += *HC;

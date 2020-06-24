@@ -56,8 +56,10 @@ class B4aEventAction : public G4UserEventAction
     std::vector<G4double>& GetVecShowerMomentum() { return fVecShowerMomentum; }
     std::vector<G4double>& GetVecShowerCkovCoMi() { return fVecShowerCoMi.at(kCkov); }
     std::vector<G4double>& GetVecShowerCkovCoMj() { return fVecShowerCoMj.at(kCkov); }
+    std::vector<G4double>& GetVecShowerCkovRad() { return fVecShowerRad.at(kCkov); }
     std::vector<G4double>& GetVecShowerScntCoMi() { return fVecShowerCoMi.at(kScnt); }
     std::vector<G4double>& GetVecShowerScntCoMj() { return fVecShowerCoMj.at(kScnt); }
+    std::vector<G4double>& GetVecShowerScntRad() { return fVecShowerRad.at(kScnt); }
     std::vector<G4int>& GetVecIndexCkov() { return fVecIndex.at(kCkov); } 
     std::vector<G4int>& GetVecSignalCkov() { return fVecSignal.at(kCkov); }
     std::vector<G4int>& GetVecIndexScnt() { return fVecIndex.at(kScnt); }
@@ -71,7 +73,7 @@ class B4aEventAction : public G4UserEventAction
     TrackerHitsCollection* GetTrackerHitsCollection(G4int hcID, const G4Event* event) const;
     SiPMhitsCollection* GetSiPMhitsCollection(G4int hcID, const G4Event* event) const;
     std::tuple<std::vector<int>, std::vector<int>> GetVectors(SiPMhitsCollection *HC) const;
-    std::tuple<G4double, G4double> GetCentreOfMass(SiPMhitsCollection *HC) const;
+    std::tuple<G4double, G4double, G4double> GetCentreOfMass(SiPMhitsCollection *HC) const;
 
     enum ProcessIndex {
       kCkov,  ///< Cerenkov process index
@@ -86,6 +88,7 @@ class B4aEventAction : public G4UserEventAction
     std::vector<G4double> fVecShowerMomentum;
     std::array<std::vector<G4double>, kNProc> fVecShowerCoMi;
     std::array<std::vector<G4double>, kNProc> fVecShowerCoMj;
+    std::array<std::vector<G4double>, kNProc> fVecShowerRad;
     std::array<std::vector<G4int>, kNProc> fVecIndex;   ///< Scintillating fibre p.e.
     std::array<std::vector<G4int>, kNProc> fVecSignal;  ///< Cherenkov fibre p.e.
 

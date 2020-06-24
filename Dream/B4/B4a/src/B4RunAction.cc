@@ -149,8 +149,10 @@ void B4RunAction::BeginOfRunAction(const G4Run* run /*run*/)
   analysisManager->CreateNtupleDColumn("VecShowerMomentum", eventAction->GetVecShowerMomentum());
   analysisManager->CreateNtupleDColumn("VecShowerCkovCoMi", eventAction->GetVecShowerCkovCoMi());  
   analysisManager->CreateNtupleDColumn("VecShowerCkovCoMj", eventAction->GetVecShowerCkovCoMj());  
+  analysisManager->CreateNtupleDColumn("VecShowerCkovRad", eventAction->GetVecShowerCkovRad());  
   analysisManager->CreateNtupleDColumn("VecShowerScntCoMi", eventAction->GetVecShowerScntCoMi());  
   analysisManager->CreateNtupleDColumn("VecShowerScntCoMj", eventAction->GetVecShowerScntCoMj());  
+  analysisManager->CreateNtupleDColumn("VecShowerScntRad", eventAction->GetVecShowerScntRad());  
   analysisManager->CreateNtupleIColumn("VecIndexCkov", eventAction->GetVecIndexCkov());
   analysisManager->CreateNtupleIColumn("VecSignalCkov", eventAction->GetVecSignalCkov());
   analysisManager->CreateNtupleIColumn("VecIndexScnt", eventAction->GetVecIndexScnt());
