@@ -21,9 +21,9 @@ def matching(x, signal):
 	lst = []
 	while not x.empty:
 		df = x.loc[x.dist.idxmin()]
-		# if (((signal == 'S') and (df.dist < np.sqrt(2)*df.S_rad_mean)) or 
-			# ((signal == 'C') and (df.dist < np.sqrt(2)*df.C_rad_mean))):
-		lst += [(df.clusterId.astype(int), df.showerId.astype(int), df.dist)]
+		if (((signal == 'S') and (df.dist < np.sqrt(df.S_rad_mean**2+(df.VecShowerScntRad/2)**2))) or 
+		    ((signal == 'C') and (df.dist < np.sqrt(df.C_rad_mean**2+(df.VecShowerCkovRad/2)**2)))):
+			lst += [(df.clusterId.astype(int), df.showerId.astype(int), df.dist)]
 		x = x[(x.showerId != df.showerId) & (x.clusterId != df.clusterId)]
 	return lst
 
@@ -56,8 +56,8 @@ for signal in ['S', 'C']:
 	print(signal, "pdf_final.shape", pdf_final.shape, "pdf_signal.shape", pdf_cluster[signal].shape)
 
 pdf_final['showerIdBool'] = ~pdf_final.showerId.isna()
-pdf_final['S_clusterIdBool'] = ~pdf_final.S_clusterId.isna() & ((pdf_final.S_dist < np.sqrt(2)*pdf_final.S_rad_mean)) # | pdf_final.S_dist.isna())
-pdf_final['C_clusterIdBool'] = ~pdf_final.C_clusterId.isna() & ((pdf_final.C_dist < np.sqrt(2)*pdf_final.C_rad_mean)) # | pdf_final.C_dist.isna())
+pdf_final['S_clusterIdBool'] = ~pdf_final.S_clusterId.isna() #& ((pdf_final.S_dist < np.sqrt(2)*pdf_final.S_rad_mean)) # | pdf_final.S_dist.isna())
+pdf_final['C_clusterIdBool'] = ~pdf_final.C_clusterId.isna() #& ((pdf_final.C_dist < np.sqrt(2)*pdf_final.C_rad_mean)) # | pdf_final.C_dist.isna())
 pdf_final['clusterIdBool'] = pdf_final.S_clusterIdBool | pdf_final.C_clusterIdBool
 # redefine clusterId
 pdf_final.reset_index(drop=True, inplace=True)
@@ -88,22 +88,22 @@ def weighted_comj(x):
 		return (x.S_sum*x.S_comj+x.C_sum*x.C_comj)/(x.S_sum+x.C_sum)
 
 # remember there is only one charged track in any event
-def distance2charged(x):
-	df = x.loc[x.IsCharged]
-	x['dist2charge'] = x.apply(lambda x: np.nan if df.empty else np.sqrt((df.comi-x.comi)**2+(df.comj-x.comj)**2), axis=1)
-	return x
+# def distance2charged(x):
+	# df = x.loc[x.IsCharged]
+	# x['dist2charge'] = x.apply(lambda x: np.nan if df.empty else np.sqrt((df.comi-x.comi)**2+(df.comj-x.comj)**2), axis=1)
+	# return x
 
 pdf_final['comi'] = pdf_final.apply(weighted_comi, axis=1)
 pdf_final['comj'] = pdf_final.apply(weighted_comj, axis=1)
-pdf_final.IsCharged = pdf_final.IsCharged == 1.0
-grouped_charged = pdf_final[pdf_final.clusterIdBool].groupby('eventId').apply(distance2charged)
-grouped_charged = grouped_charged.filter(items=['eventId', 'clusterId', 'dist2charge'])
-pdf_final = pdf_final.merge(grouped_charged, how='left', on=['eventId', 'clusterId'])
+# pdf_final.IsCharged = pdf_final.IsCharged == 1.0
+# grouped_charged = pdf_final[pdf_final.clusterIdBool].groupby('eventId').apply(distance2charged)
+# grouped_charged = grouped_charged.filter(items=['eventId', 'clusterId', 'dist2charge'])
+# pdf_final = pdf_final.merge(grouped_charged, how='left', on=['eventId', 'clusterId'])
 #
 print(pdf_final.head())
 
 # get dataframe when there is both a shower and cluster
-pdf_ml = pdf_final[pdf_final.showerIdBool & pdf_final.clusterIdBool]
+pdf_ml = pdf_final[pdf_final.showerIdBool & pdf_final.clusterIdBool].copy()
 print(pdf_ml.PrimaryDecayMode.value_counts())
 print(pdf_ml.VecShowerPDG.value_counts())
 
@@ -118,9 +118,15 @@ pdf_ml['C_hot'] = pdf_final.apply(lambda x: x.C_hot if x.C_clusterIdBool else np
 pdf_ml['label'] = pdf_ml.VecShowerPDG.map({11: 0, 13: 1, 22: 2, -211: 3})
 pdf_ml['CoverS'] = pdf_ml.apply(lambda x: x.C_sum / x.S_sum, axis=1)
 
+cal = np.load("calibration.pkl.npy", allow_pickle=True).item()
+pdf_ml['rec_energy'] = pdf_ml.apply(lambda x: (x.S_sum-cal['chi']*x.C_sum)/(1-cal['chi']), axis=1)
+
+
 print(pdf_ml.label.value_counts())
 
-pdf_ml = pdf_ml.filter(items=['eventId', 'clusterId', 'PrimaryDecayMode', 'VecShowerEnergy', 'S_sum', 'C_sum', 'S_rad_mean', 'C_rad_mean', 'S_hot', 'C_hot', 'CoverS', 'dist2charge', 'label'])
+pdf_ml = pdf_ml.filter(items=['eventId', 'clusterId', 'PrimaryDecayMode', 'VecShowerEnergy', 
+								'S_sum', 'C_sum', 'S_rad_mean', 'C_rad_mean', 'S_hot', 
+								'C_hot', 'CoverS', 'rec_energy', 'label', 'comi', 'comj'])
 pdf_ml.clusterId = pdf_ml.clusterId.astype(int)
 pdf_ml.PrimaryDecayMode = pdf_ml.PrimaryDecayMode.astype(int)
 
