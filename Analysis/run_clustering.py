@@ -64,8 +64,8 @@ def parser_fn(proto):
     deserialized['tseed'] = tf.constant(4., tf.float32)
     deserialized['tneighbour'] = tf.constant(2., tf.float32)
     deserialized['tcell'] = tf.constant(0., tf.float32)
-    deserialized['tenergy'] = tf.constant(500., tf.float32)
-    deserialized['tlocmax'] = tf.constant(250., tf.float32)
+    deserialized['tenergy'] = tf.constant(1000., tf.float32)
+    deserialized['tlocmax'] = tf.constant(500., tf.float32)
     deserialized['tnum'] = tf.constant(3, tf.int32)
     
     return deserialized
@@ -74,7 +74,7 @@ def parser_fn(proto):
 # In[6]:
 
 
-DATA_DIR = '/groups/hep/mojen/repositories/DREAM/Run/final_run/tauolaevts/10000'
+DATA_DIR = '/groups/hep/mojen/repositories/DREAM/Run/final_run/tauolaevts/25000'
 #DATA_DIR = '/home/jupyter/DREAM'
 BATCH_SIZE = 32
 BUFFER_SIZE = 64
@@ -230,6 +230,7 @@ print(end-start)
 #
 #
 ## In[ ]:
+
 
 
 
