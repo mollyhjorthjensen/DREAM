@@ -107,16 +107,16 @@ pdf_ml = pdf_final[pdf_final.showerIdBool & pdf_final.clusterIdBool].copy()
 print(pdf_ml.PrimaryDecayMode.value_counts())
 print(pdf_ml.VecShowerPDG.value_counts())
 
-pdf_ml['S_sum'] = pdf_ml.apply(lambda x: x.S_sum if x.S_clusterIdBool else np.nan, axis=1)
+pdf_ml['S_sum'] = pdf_ml.apply(lambda x: x.S_sum if x.S_clusterIdBool else 0., axis=1)
 pdf_ml['S_rad_mean'] = pdf_ml.apply(lambda x: x.S_rad_mean if x.S_clusterIdBool else np.nan, axis=1)
 pdf_ml['S_hot'] = pdf_ml.apply(lambda x: x.S_hot if x.S_clusterIdBool else np.nan, axis=1)
 
-pdf_ml['C_sum'] = pdf_final.apply(lambda x: x.C_sum if x.C_clusterIdBool else np.nan, axis=1)
+pdf_ml['C_sum'] = pdf_final.apply(lambda x: x.C_sum if x.C_clusterIdBool else 0., axis=1)
 pdf_ml['C_rad_mean'] = pdf_final.apply(lambda x: x.C_rad_mean if x.C_clusterIdBool else np.nan, axis=1)
 pdf_ml['C_hot'] = pdf_final.apply(lambda x: x.C_hot if x.C_clusterIdBool else np.nan, axis=1)
 
 pdf_ml['label'] = pdf_ml.VecShowerPDG.map({11: 0, 13: 1, 22: 2, -211: 3})
-pdf_ml['CoverS'] = pdf_ml.apply(lambda x: x.C_sum / x.S_sum, axis=1)
+pdf_ml['CoverS'] = pdf_ml.apply(lambda x: x.C_sum / x.S_sum if x.S_sum != 0 else np.nan, axis=1)
 
 cal = np.load("calibration.pkl.npy", allow_pickle=True).item()
 pdf_ml['rec_energy'] = pdf_ml.apply(lambda x: (x.S_sum-cal['chi']*x.C_sum)/(1-cal['chi']), axis=1)
