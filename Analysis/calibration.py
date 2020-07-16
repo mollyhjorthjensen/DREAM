@@ -4,13 +4,7 @@ import numpy as np
 from tableauColors import palette
 
 def leakageCorrection(col):
-    return f"{col}*PrimaryEnergy/(PrimaryEnergy-LateralLeakage)"
-
-def modifiedZscore(rdf, col, D=3.5):
-    x = rdf.AsNumpy(columns=[col])[col]
-    xtilde = np.median(x)
-    MAD = np.median(np.abs(x-xtilde))
-    return f"abs(0.6745*({col}-({xtilde}))/{MAD}) <= {D}"
+    return f"{col}*1/(1-LateralLeakage)"
 
 assert len(sys.argv) == 3
 treeName = "B4"
@@ -32,10 +26,6 @@ rdf_scnt = rdf_scnt.Define("Snorm", "PrimaryEnergy/Ssum")
 rdf_ckov = rdf.Filter("Csum > 0.", "any Cerenkov signal")
 rdf_ckov = rdf_ckov.Define("Cnorm", "PrimaryEnergy/Csum")
 
-# modified Z score
-rdf_scnt = rdf_scnt.Filter(modifiedZscore(rdf_scnt, "Snorm"), "outliers scintillating")
-rdf_ckov = rdf_ckov.Filter(modifiedZscore(rdf_ckov, "Cnorm"), "outliers Cerenkov")
-
 # print cuts report
 cutsReport_scnt = rdf_scnt.Report()
 cutsReport_scnt.Print()
@@ -50,7 +40,7 @@ h = [None, None]
 stats1 = [None, None]
 legend = [None, None]
 mean = [None, None, None]
-model = [("", "", 100, 0.17, 0.21), ("", "", 100, 8.2, 10.2)]
+model = [("", "", 100, 0.15, 0.2), ("", "", 150, 7, 10)]
 xlabel = ["E_{beam} / scintillating p.e.", "E_{beam} / #check{C}erenkov p.e."]
 
 for i in range(len(col)):
@@ -71,7 +61,9 @@ for i in range(len(col)):
     xlabeloffset = 2.05 * h[i].GetXaxis().GetLabelOffset()
     ylabeloffset = 2.05 * h[i].GetYaxis().GetLabelOffset()
     linewidth = 3
-    x2ndc = 0.89+0.05
+
+    x1ndc = 0.15+0.02
+    # x2ndc = 0.89+0.05
     y2ndc = 0.88+0.05
 
     h[i].GetXaxis().SetTitle(xlabel[i])
@@ -83,7 +75,7 @@ for i in range(len(col)):
 
     #h[i].GetXaxis().SetNdivisions(1010)
     binwidth = h[i].GetBinWidth(1)
-    h[i].SetAxisRange(0., 100., "Y")
+    h[i].SetAxisRange(0., 140., "Y")
     h[i].GetYaxis().SetTitle(f"Events / {binwidth:.4g}")
     h[i].GetYaxis().SetTitleSize(titlesize)
     h[i].GetYaxis().SetLabelSize(labelsize)
@@ -111,15 +103,15 @@ for i in range(len(col)):
     h[i].SetStats(0)
     stats1[i].GetLineWith("Entries").SetTextColor(palette['blue'].GetNumber())
     stats1[i].SetTextColor(palette['red'].GetNumber())
-    stats1[i].SetX2NDC(x2ndc)
+    stats1[i].SetX1NDC(x1ndc)
     stats1[i].SetY2NDC(y2ndc)
-    stats1[i].SetX1NDC(stats1[i].GetX2NDC()-0.42)
+    stats1[i].SetX2NDC(stats1[i].GetX1NDC()+0.45)
     stats1[i].SetY1NDC(stats1[i].GetY2NDC()-0.25)
     stats1[i].SetTextSize(labelsize)
     stats1[i].SetBorderSize(0)
     stats1[i].Draw()
     # add legend
-    legend[i] = ROOT.TLegend(stats1[i].GetX1NDC()+0.12, 0.2, stats1[i].GetX2NDC(), 0.3)
+    legend[i] = ROOT.TLegend(stats1[i].GetX1NDC(), 0.2, stats1[i].GetX2NDC()-0.1, 0.3)
     legend[i].SetFillColor(0)
     legend[i].SetBorderSize(0)
     legend[i].SetTextSize(labelsize)
@@ -149,9 +141,6 @@ rdf2 = rdf2.Define("Ssum", "Sum(VecSignalScnt_cal)")
 rdf2 = rdf2.Define("Csum", "Sum(VecSignalCkov_cal)")
 rdf2 = rdf2.Filter("PrimaryPDG == -211", "only pions")
 rdf2 = rdf2.Define("chi", "(Ssum-PrimaryEnergy)/(Csum-PrimaryEnergy)")
-
-# modified Z score
-rdf2 = rdf2.Filter(modifiedZscore(rdf2, "chi"), "outliers")
 
 # print cuts report
 cutsReport = rdf2.Report()
