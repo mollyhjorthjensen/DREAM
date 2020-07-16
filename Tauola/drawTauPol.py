@@ -45,7 +45,7 @@ p1.GetYaxis().CenterTitle()
 p1.GetYaxis().SetTitleOffset(1.6+0.005)
 p1.GetYaxis().SetLabelOffset(0.005)
 
-#ROOT.gPad.SetTicks(1, 1)
+ROOT.gPad.SetTicks(1, 1)
 
 p1.StatOverflows(ROOT.kTRUE)
 
