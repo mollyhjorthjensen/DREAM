@@ -2,6 +2,7 @@ import sys
 import ROOT
 import numpy as np
 from tableauColors import palette
+from scipy import stats
 
 assert len(sys.argv) == 2
 treeName = "B4"
@@ -21,19 +22,17 @@ rdf = rdf.Define("VecSignalCkov_corr", leakage.format("VecSignalCkov"))
 rdf = rdf.Define("Ssum", "Sum(VecSignalScnt_corr)")
 rdf = rdf.Define("Csum", "Sum(VecSignalCkov_corr)")
 rdf = rdf.Filter("PrimaryPDG == 11", "only electrons")
-rdf_S = rdf.Define("Snorm", "Ssum/PrimaryEnergy")
-rdf_C = rdf.Define("Cnorm", "Csum/PrimaryEnergy")
+rdf = rdf.Define("Snorm", "Ssum/PrimaryEnergy")
+rdf = rdf.Define("Cnorm", "Csum/PrimaryEnergy")
 
 # print cuts report
-cutsReport_S = rdf_S.Report()
-cutsReport_S.Print()
-cutsReport_C = rdf_C.Report()
-cutsReport_C.Print()
+cutsReport = rdf.Report()
+cutsReport.Print()
 
 c = ROOT.TCanvas("c", "c", 1200, 600)
 c.Divide(2)
 col = ["Snorm", "Cnorm"]
-d = [rdf_S, rdf_C]
+d = [rdf, rdf]
 h = [None, None]
 stats1 = [None, None]
 legend = [None, None]
@@ -148,3 +147,14 @@ c.Print("calibration.png")
 cal = {"Scnt": mean[0], "Ckov": mean[1]}
 print(cal)
 np.save("calibration.pkl", cal)
+
+
+# test
+c2 = ROOT.TCanvas("c2", "c2", 600, 600)
+h2 = rdf.Graph("Snorm", "Cnorm")
+h2.Draw('ap')
+c2.Print("test_cal.png")
+
+# correlation coefficients
+npy = rdf.AsNumpy(columns=["Snorm", "Cnorm"])
+print(f"Correlation coefficient : {stats.pearsonr(x=npy['Snorm'], y=npy['Cnorm'])}")
