@@ -30,13 +30,12 @@ cutsReport = rdf.Report()
 cutsReport.Print()
 
 c = ROOT.TCanvas("c", "c", 1200, 600)
-c.Divide(2)
+c.Divide(2)#,2)
 col = ["Snorm", "Cnorm"]
-d = [rdf, rdf]
-h = [None, None]
-stats1 = [None, None]
-legend = [None, None]
-mean = [None, None]
+h = [None, None]#, None, None]
+stats1 = [None, None]#, None, None]
+legend = [None, None]#, None, None]
+mean = [None, None]#, None, None]
 model = [("", "", 125, 5, 7.5), ("", "", 100, 0.10, 0.15)]
 xlabel = ["Scintillation signal / E_{beam} [p.e. / MeV]", 
           "#check{C}erenkov signal / E_{beam}  [p.e. / MeV]"]
@@ -50,6 +49,8 @@ x1ndc = x2ndc-0.5
 y2ndc = 0.88+0.05
 linespacing = 0.05
 
+X = ["Scnt", "Ckov"]
+
 for i in range(len(col)):
     c.cd(i+1)
     ROOT.gStyle.SetOptStat("e")
@@ -59,7 +60,10 @@ for i in range(len(col)):
     ROOT.gPad.SetBottomMargin(0.15)
     ROOT.gPad.SetRightMargin(0.05)
     ROOT.gPad.SetTopMargin(0.05)
-    h[i] = d[i].Histo1D(model[i], col[i])
+    # if i >= 2:
+    h[i] = rdf.Histo1D(model[i], col[i])
+    # else:
+        # h[i] = rdf.Histo1D(col[i])
     # h[i] = d[i].Histo1D(col[i])
 
     # h[i].SetTitle(title[i])
@@ -96,33 +100,35 @@ for i in range(len(col)):
     h[i].GetYaxis().CenterTitle()
     
     h[i].DrawCopy("E1")
+    # if i >= 2:
     r = h[i].Fit("gaus", "S")
     r.Print()
+    gaus = h[i].GetFunction("gaus")
+    gaus.SetLineColor(palette[X[i]].GetNumber())
+    gaus.SetLineWidth(linewidth)
+    mean[i] = r.Parameter(1)
+    Res = r.Parameter(2) / r.Parameter(1)
+    ResErr = Res * (r.ParError(1) / r.Parameter(1) + r.ParError(2) / r.Parameter(2))
+
 
     assert h[i].GetBinContent(0) == 0 and h[i].GetBinContent(h[i].GetNbinsX()+1) == 0
     
     h[i].SetLineColor(ROOT.kBlack)
     h[i].SetLineWidth(linewidth)
-    gaus = h[i].GetFunction("gaus")
-    gaus.SetLineColor(palette['red'].GetNumber())
-    gaus.SetLineWidth(linewidth)
-    mean[i] = r.Parameter(1)
-
+    
     # stat box
     c.Update()
     stats1[i] = h[i].GetListOfFunctions().FindObject("stats")
     h[i].GetListOfFunctions().Remove(stats1[i])
     h[i].SetStats(0)
     stats1[i].GetLineWith("Entries").SetTextColor(ROOT.kBlack)
-    stats1[i].SetTextColor(palette['red'].GetNumber())
-
-    Res = r.Parameter(2) / r.Parameter(1)
-    ResErr = Res * (r.ParError(1) / r.Parameter(1) + r.ParError(2) / r.Parameter(2))
+    stats1[i].SetTextColor(palette[X[i]].GetNumber())
 
     if i == 1:
         stats1[i].GetListOfLines().Remove(stats1[i].GetLineWith("Sigma"))
         stats1[i].AddText(f"Sigma = {r.Parameter(2):.5f} #pm {r.ParError(2):.5f}")
 
+    # if i >= 2:
     stats1[i].AddText(f"#sigma/#mu = {Res:.4f} #pm {ResErr:.4f}")
     stats1[i].SetX1NDC(x1ndc)
     stats1[i].SetY2NDC(y2ndc)
@@ -137,6 +143,7 @@ for i in range(len(col)):
     legend[i].SetBorderSize(0)
     legend[i].SetTextSize(labelsize)
     legend[i].AddEntry(h[i].GetValue(), "Simulated data", "l")
+    # if i >= 2:
     legend[i].AddEntry(gaus, "Gaussian fit", "l")
     legend[i].Draw()
     
@@ -144,7 +151,7 @@ ROOT.gPad.Modified()
 ROOT.gPad.Update()
 c.Print("calibration.png")
 
-cal = {"Scnt": mean[0], "Ckov": mean[1]}
+cal = {"Scnt": mean[-2], "Ckov": mean[-1]}
 print(cal)
 np.save("calibration.pkl", cal)
 
