@@ -90,7 +90,7 @@ h2.GetXaxis().SetTickLength(0.7 * ratio * h2.GetXaxis().GetTickLength())
 h2.GetYaxis().SetTickLength(0.7 * ratio * h2.GetYaxis().GetTickLength())
 
 h2.DrawCopy("E1")
-r2 = h2.Fit("gaus", "S")
+r2 = h2.Fit("gaus", "SR", "", h2.GetMean()-1.5*h2.GetRMS(), h2.GetMean()+1.5*h2.GetRMS())
 r2.Print()
 nbins = h2.GetNbinsX()
 print(f"Underflow : {h2.GetBinContent(0)}\t\tOverflow : {h2.GetBinContent(nbins+1)}")
