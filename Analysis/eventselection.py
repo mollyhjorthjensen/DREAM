@@ -4,7 +4,10 @@ import numpy as np
 import ROOT
 import pandas as pd
 
-energy_thresh = 200.
+# leakage correction
+leakage = "{}*1./(1.-LateralLeakage)"
+
+# energy_thresh = 200.
 treeName = "B4"
 
 fileName = sys.argv[1]
@@ -51,19 +54,19 @@ d = d.Define("VecShowerPDG_filtered", "Take(VecShowerPDG, Nonzero(IsShower))")
 d = d.Filter("check_decay_mode(PrimaryDecayMode, VecShowerPDG_filtered)", "check decay mode")
 print("check decay mode")
 num_modes(d)
-d = d.Filter(f"All(Take(VecShowerEnergy, Nonzero(IsShower)) > {energy_thresh})", f"energy > {int(energy_thresh)} MeV")
-print("energy threshold")
-num_modes(d)
+# d = d.Filter(f"All(Take(VecShowerEnergy, Nonzero(IsShower)) > {energy_thresh})", f"energy > {int(energy_thresh)} MeV")
+# print("energy threshold")
+# num_modes(d)
 d = d.Filter("(Sum(VecSignalScnt) > 0) || (Sum(VecSignalCkov) > 0)", "at least one signal")
 print("at least one signal")
 num_modes(d)
 
 # define new columns
 d = d.Define("eventId", "rdfentry_")
-d = d.Define("VecSignalScnt_corr", "VecSignalScnt*PrimaryEnergy/(PrimaryEnergy-LateralLeakage)")
-d = d.Define("VecSignalCkov_corr", "VecSignalCkov*PrimaryEnergy/(PrimaryEnergy-LateralLeakage)")
-d = d.Define("VecSignalScnt_cal", f"VecSignalScnt_corr*{cal['Scnt']}")
-d = d.Define("VecSignalCkov_cal", f"VecSignalCkov_corr*{cal['Ckov']}")
+d = d.Define("VecSignalScnt_corr", leakage.format("VecSignalScnt"))
+d = d.Define("VecSignalCkov_corr", leakage.format("VecSignalCkov"))
+d = d.Define("VecSignalScnt_cal", f"VecSignalScnt_corr/{cal['Scnt']}")
+d = d.Define("VecSignalCkov_cal", f"VecSignalCkov_corr/{cal['Ckov']}")
 d = d.Define("Ssum", "Sum(VecSignalScnt_cal)")
 d = d.Define("Csum", "Sum(VecSignalCkov_cal)")
 

@@ -74,7 +74,7 @@ def parser_fn(proto):
 # In[6]:
 
 
-DATA_DIR = '/groups/hep/mojen/repositories/DREAM/Run/final_run/tauolaevts/25000'
+DATA_DIR = '/groups/hep/mojen/repositories/DREAM/Run/final_run/tauolaevts/25000/wothreshold'
 #DATA_DIR = '/home/jupyter/DREAM'
 BATCH_SIZE = 32
 BUFFER_SIZE = 64
