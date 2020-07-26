@@ -63,6 +63,7 @@ for i,pdg,s in zip([0, 1], [11, -211], ['e-', 'pi-']):
         f.SetParameter(0, 0.15)
         f.SetParName(0, "#chi-value")
         r = gr[i].Fit("f1", "SR", "", 0.85, 1.0)
+        # r2 = gr[i].Fit("pol1", "SR", "", 0.85, 1.0)
         # r = gr[i].Fit("pol1", "SR", "", 0.8, 1.0)
         r.Print()
 
