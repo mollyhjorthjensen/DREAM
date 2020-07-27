@@ -21,9 +21,13 @@ def matching(x, signal):
 	lst = []
 	while not x.empty:
 		df = x.loc[x.dist.idxmin()]
-		if (((signal == 'S') and (df.dist < np.sqrt(df.S_rad_mean**2+(df.VecShowerScntRad/2)**2))) or 
-		    ((signal == 'C') and (df.dist < np.sqrt(df.C_rad_mean**2+(df.VecShowerCkovRad/2)**2)))):
-			lst += [(df.clusterId.astype(int), df.showerId.astype(int), df.dist)]
+		# if (((signal == 'S') and (df.dist < np.sqrt(df.S_rad_mean**2+(df.VecShowerScntRad/2)**2))) or 
+		    # ((signal == 'C') and (df.dist < np.sqrt(df.C_rad_mean**2+(df.VecShowerCkovRad/2)**2)))):
+		if signal == 'S':
+			lst += [(df.S_rad_mean, df.VecShowerScntRad, df.clusterId.astype(int), df.showerId.astype(int), df.dist)]
+		if signal == 'C':
+			lst += [(df.C_rad_mean, df.VecShowerCkovRad, df.clusterId.astype(int), df.showerId.astype(int), df.dist)]
+		# lst += [(df.clusterId.astype(int), df.showerId.astype(int), df.dist)]
 		x = x[(x.showerId != df.showerId) & (x.clusterId != df.clusterId)]
 	return lst
 
@@ -47,7 +51,15 @@ for signal in ['S', 'C']:
 	grouped_matched = pdf_merged.groupby('eventId').apply(lambda x: matching(x, signal))
 	# create dataframe from match
 	flatlist = [item for sublist in grouped_matched for item in sublist]
-	pdf_new = pd.DataFrame(flatlist, columns=['clusterId', 'showerId', signal+'_dist'])
+	pdf_new = pd.DataFrame(flatlist, columns=[signal+'_rad_mean', 'ShowerRad', 'clusterId', 'showerId', signal+'_dist'])
+	pdf_new['threshold'] = pdf_new.apply(lambda x: np.sqrt(x[signal+'_rad_mean']**2+(x.ShowerRad/2)**2), axis=1)
+	
+	pdf_new.to_csv(os.path.join(path, signal+"_dist.csv"), index=False)
+	print(pdf_new.head())
+
+	pdf_new = pdf_new.loc[pdf_new[signal+'_dist'] < pdf_new.threshold ].copy()
+	pdf_new.drop(columns=[signal+'_rad_mean', 'ShowerRad', 'threshold'], inplace=True)
+	
 	# merge match and cluster with a left join to add unique shower id and dist 
 	pdf_cluster[signal] = pdf_cluster[signal].merge(pdf_new, how='left', on=['clusterId'])
 	pdf_cluster[signal].rename(columns={'clusterId': signal+'_clusterId'}, inplace=True)
@@ -118,8 +130,9 @@ pdf_ml['C_hot'] = pdf_final.apply(lambda x: x.C_hot if x.C_clusterIdBool else np
 pdf_ml['label'] = pdf_ml.VecShowerPDG.map({11: 0, 13: 1, 22: 2, -211: 3})
 pdf_ml['CoverS'] = pdf_ml.apply(lambda x: x.C_sum / x.S_sum if x.S_sum != 0 else np.nan, axis=1)
 
-cal = np.load("calibration.pkl.npy", allow_pickle=True).item()
-pdf_ml['rec_energy'] = pdf_ml.apply(lambda x: (x.S_sum-cal['chi']*x.C_sum)/(1-cal['chi']), axis=1)
+#cal = np.load("calibration.pkl.npy", allow_pickle=True).item()
+#pdf_ml['rec_energy'] = pdf_ml.apply(lambda x: (x.S_sum-cal['chi']*x.C_sum)/(1-cal['chi']), axis=1)
+pdf_ml['rec_energy'] = pdf_ml.apply(lambda x: (x.S_sum-0.2072*x.C_sum)/(1-0.2072), axis=1)
 
 
 print(pdf_ml.label.value_counts())
