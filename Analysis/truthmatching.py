@@ -33,6 +33,8 @@ def matching(x, signal):
 
 # import dataframes
 pdf_true = pd.read_csv(os.path.join(path, 'truth.csv'))
+# print(pdf_true.VecShowerPDG.value_counts())
+
 pdf_cluster = {}
 pdf_final = pdf_true.copy()
 print("pdf_final.shape", pdf_final.shape)
