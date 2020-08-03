@@ -134,7 +134,7 @@ pdf_ml['CoverS'] = pdf_ml.apply(lambda x: x.C_sum / x.S_sum if x.S_sum != 0 else
 
 #cal = np.load("calibration.pkl.npy", allow_pickle=True).item()
 #pdf_ml['rec_energy'] = pdf_ml.apply(lambda x: (x.S_sum-cal['chi']*x.C_sum)/(1-cal['chi']), axis=1)
-pdf_ml['rec_energy'] = pdf_ml.apply(lambda x: (x.S_sum-0.2072*x.C_sum)/(1-0.2072), axis=1)
+pdf_ml['rec_energy'] = pdf_ml.apply(lambda x: np.clip((x.S_sum-0.2072*x.C_sum)/(1-0.2072),0,1e6), axis=1)
 
 
 print(pdf_ml.label.value_counts())
