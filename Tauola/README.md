@@ -21,6 +21,6 @@ make
 
 ## Generate TauPol.png
 ```
-source ../analysis/setup_python.sh
+source ../Analysis/setup_python.sh
 python drawTauPol.py
 ```

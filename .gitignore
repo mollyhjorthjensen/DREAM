@@ -1,4 +1,12 @@
 Dream/build
+Dream/build_module
+Dream/build_module.sh
+Dream/build_original
+Dream/build_original.sh
+Dream/build2
+Dream/build2.sh
+Dream/build_rad
+Dream/build_rad.sh
 *.root
 *.out
 *.err
